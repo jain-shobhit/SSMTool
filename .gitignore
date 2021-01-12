@@ -1,0 +1,13 @@
+*.m~
+# ASV files
+*.asv
+# Data files
+*.mat
+# Figures
+*.fig
+*.eps
+*.lsf
+# text files
+coco_scr.txt
+coco_log.txt
+diary
