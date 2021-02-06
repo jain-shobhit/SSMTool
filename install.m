@@ -7,12 +7,13 @@ extdir = 'ext';
 cocoinstall = fullfile(maindir, extdir , 'coco','startup.m');
 run(cocoinstall);
 
-NLvibpath = fullfile(maindir, extdir, 'NLvib_v1.3','SRC');
-addpath(genpath(NLvibpath))
-
 addpath(fullfile(maindir, extdir,'combinator'));
 
 addpath(fullfile(maindir, extdir, 'tensor_toolbox'));
+
+addpath(genpath(fullfile(maindir, extdir, 'YetAnotherFEcode','src')));
+
+addpath(genpath(fullfile(maindir, extdir, 'YetAnotherFEcode','examples')));
 
 addpath(fullfile(maindir, extdir, 'Wrappers'));
 

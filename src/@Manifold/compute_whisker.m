@@ -32,7 +32,9 @@ for j = 2:order
     %recursively approximate at j-th order
     startOrderj = tic;
     [W_0{j},R_0{j},multi_input] = cohomological_solution(obj,j,W_0,R_0,multi_input);
-    obj.solInfo.timeEstimate(j) = toc(startOrderj); 
+    obj.solInfo.timeEstimate(j) = toc(startOrderj);
+    disp(['Manifold computation time at order ' num2str(j) ' = ' datestr(datenum(0,0,0,0,0,obj.solInfo.timeEstimate(j)),'HH:MM:SS')])
+    fprintf('Estimated memory usage at order % 2i = %05.2E MB\n', j, obj.solInfo.memoryEstimate(j))
 end
 
 switch obj.Options.notation

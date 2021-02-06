@@ -1,0 +1,13 @@
+# ASV files
+*.asv
+# Data files
+*.mat
+# Figures
+*.fig
+*.png
+*.eps
+# videos
+*.gif
+*.avi
+*.mp4
+diary

@@ -26,6 +26,7 @@ assert(numel(modes)==2,'The analytic backbone computation can only be performed 
     obj.FRCOptions.outdof, obj.FRCOptions.saveIC);
 
 %% setup
+startBB = tic;
 obj.choose_E(modes);
 lambda = obj.E.spectrum(1);
 
@@ -49,6 +50,8 @@ BB = compute_output_polar2D(rho,psi,stability,epsilon,omega,W0,[],1,nt, saveIC, 
 
 %% plotting
 plot_FRC_full(BB,outdof,order,'freq','lines')
+totalComputationTime = toc(startBB);
+disp(['Total time spent on backbone curve computation = ' datestr(datenum(0,0,0,0,0,totalComputationTime),'HH:MM:SS')])
 end
 
 function rho = compute_rho_grid(omegaRange,nOmega,rhoScale,gamma,lambda,nRho)
