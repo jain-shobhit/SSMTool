@@ -135,12 +135,51 @@ R1{1}.coeffs = f_10; R1{1}.kappas = kappa_set;
 if obj.Options.contribNonAuto % whether to ignore higher order
     W1 = cell(1,order + 1);
     W10 = zeros(N,K);
-    for j = 1:K
-        C_j =  1i*dot(Omega,kappa_set(j,:))*B - A;
-        W10(:,j) = lsqminnorm(C_j,l_10(:,j));
+    % Use conjugacy to reduce computations: fe^{i<kappa,omega>t} + \bar{f}e^{i<-kappa,omega>t}
+    [redConj,mapConj] = conj_red(kappa_set, F_kappa);
+    % Here redConj gives the reduced kappa sets by accounting for
+    % complex conjugate, and mapConj is a cell array, where each entry maps to the
+    % possible conjugacy pairs
+    for j = 1:numel(redConj)
+        C_j  =  1i*dot(Omega,kappa_set(redConj(j),:))*B - A;
+        W10j = lsqminnorm(C_j,l_10(:,redConj(j)));
+        mapj = mapConj{j};
+        switch numel(mapj)
+            case 1
+                W10(:,mapj) = W10j;
+            case 2
+                W10(:,mapj(1)) = W10j;
+                W10(:,mapj(2)) = conj(W10j);
+            otherwise
+                error('there exist redundancy in kappa of external forcing');
+        end
     end
     W1{1}.coeffs = W10; W1{1}.kappas = kappa_set;
 else
     W1 = [];
+end
+end
+
+function [redConj,mapConj] = conj_red(kappa_set,F_kappa)
+% This function detects complex conjugate relations between forcing. For instance,
+% when kappa_set = [1,-1,2,3,-3] and F_kappa = [1;1;2;3;4], it will return
+% redConj = [1,3,4,5] with mapConj = {[1 2],3,4,5}
+redConj = [];
+mapConj = [];
+assert(numel(kappa_set)==numel(unique(kappa_set)),'there exist redundancy in kappa of external forcing');
+kappa = kappa_set;
+while ~isempty(kappa)
+    ka = kappa(1);
+    ka_redConj = find(kappa_set==ka);
+    redConj = [redConj;ka_redConj];
+    % find the conjugate one if it exists
+    ka_conj = find(kappa_set==-ka);
+    if ~isempty(ka_conj) && norm(conj(F_kappa(:,ka_redConj))-F_kappa(:,ka_conj))<1e-6*norm(F_kappa(:,ka_conj))
+        mapConj = [mapConj, {[ka_redConj,ka_conj]}];
+        kappa = setdiff(kappa,[ka,-ka],'stable');
+    else
+        mapConj = [mapConj, {ka_redConj}];
+        kappa = setdiff(kappa,ka,'stable');
+    end
 end
 end
