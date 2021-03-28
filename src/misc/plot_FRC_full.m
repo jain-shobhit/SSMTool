@@ -1,5 +1,14 @@
 function plot_FRC_full(FRC,outdof,order,ParName,plotStyle,figs,color)
-% determine variable and label for x-axis
+%% PLOT_FRC_FULL This function plots forced response curve.
+%
+% PLOT_FRC_FULL(FRC,OUTDOF,ORDER,PARNAME,PLOTSTYLE,FIGS,COLOR)
+%
+% FRC:       a struct array
+% OUTDOF:    plot of FRC for these dofs
+% ORDER:     expansion order of autonomous SSM
+% PARNAME:   freq/amp FRC with varied forcing frequency or amplitude
+% PLOTSTYLE: ploting with lines or circles
+% COLOR:     color of lines/circles
 switch ParName
     case 'freq'
         xlab = '$\Omega$';
