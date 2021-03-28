@@ -94,7 +94,10 @@ classdef Mesh < handle
         end
         
         function set_essential_boundary_condition(self,DirichletNodes,ConstrainedDOF,value)
-            self.EBC = EssentialBoundary(self.nDOFs,self.nDOFPerNode,DirichletNodes,ConstrainedDOF,value);
+            if isempty(self.EBC)
+                self.EBC = EssentialBoundary(self.nDOFs,self.nDOFPerNode);
+            end            
+            self.EBC.apply_Dirichlet_BC(DirichletNodes,ConstrainedDOF,value);
         end
         
         function reset_boundary(self)
