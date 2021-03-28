@@ -63,8 +63,21 @@ fdata.mFreqs = mFreqs;
 fdata.iNonauto = iNonauto;
 fdata.rNonauto = rNonauto;
 fdata.kNonauto = kNonauto;
-fdata.W_0   = W_0;
-fdata.W_1   = W_1;
+% put W_0 and W_1 in fdata is a bad idea because it will be stored in disk
+% for each saved continuation solution. As an alternative, we save W_0 and
+% W_1 in disk here under folder data. When needed, they will be loaded into
+% memory.
+% fdata.W_0   = W_0;
+% fdata.W_1   = W_1;
+data_dir = fullfile(pwd,'data');
+if ~exist(data_dir, 'dir')
+    mkdir(data_dir);
+end
+wdir = fullfile(data_dir,'SSM.mat');
+SSMcoeffs = struct();
+SSMcoeffs.W_0 = W_0;
+SSMcoeffs.W_1 = W_1;
+save(wdir, 'SSMcoeffs');
 fdata.order = order;
 fdata.modes = resModes;
 
@@ -198,7 +211,7 @@ FRC = array2structArray(FRC);
 % end
 
 varargout{1} = FRC;
-fdir = [pwd,'\data\',runid,'\SSMep.mat'];
+fdir = fullfile(pwd,'data',runid,'SSMep.mat');
 save(fdir, 'FRC','FRCinfo');
 end
 
