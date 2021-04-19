@@ -87,7 +87,7 @@ else
         state = zRe+1j*zIm;
     end        
     epsf = coco_bd_vals(bd, sampLabs, 'eps');
-    if isomega
+    if isempty(isomega)
         stab = nan;
     else
         stab = coco_bd_vals(bd, sampLabs, 'eigs');
