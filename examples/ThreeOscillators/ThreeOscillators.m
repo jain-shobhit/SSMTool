@@ -31,16 +31,18 @@ startMD = tic;
 [V,D,W] = DS.linear_spectral_analysis();
 timings.MD = toc(startMD);
 %% 6D SSM based computation
-% *1:1 internal resonance*
+% *1:1:1 internal resonance*
 
 S = SSM(DS);
 set(S.Options, 'reltol', 1,'notation','multiindex');
-resonant_modes = [1 2 3 4 5 6];
-mFreq  = [1 1 1];
 order = 3;
 outdof = [1 2 3];
 %% 
-% Using ep toolbox - polar (failed when $\rho_3\to 0$
+% We are interested in the FRC over the frequency span [0.995 1.016]. We can 
+% call the routine extract_FRC to extract the FRC. All the three natural frequencies 
+% are inside the frequency span. The frequency span is divided into three subintervals 
+% following our algorithm. Three continuation runs are involved to get the FRC 
+% for the three subintervals.
 
 set(S.Options, 'IRtol',0.02,'notation', 'multiindex','contribNonAuto',true)
 set(S.FRCOptions, 'method','continuation ep')
@@ -51,30 +53,47 @@ set(S.contOptions,'PtMX',250);
 freqRange = [0.995 1.016];
 % call extract_FRC to calculate the FRC
 FRC = S.extract_FRC('freq',freqRange,order);
-%%
-% call FRC_cont_ep to calculate the FRC
+%% 
+% On the other hand, we can use SSM-ep toolbox to obtaint the FRC with a single 
+% continuation run as well given $\Omega\approx1$ in the whole frequency span. 
+% The SSM-ep toolbox is the minic of the ep-toolbox of COCO. It is in the middle 
+% level of the SSMTool while the extract_FRC routine is in the high level of the 
+% SSMTool. The continuation-based method implemented in the extract_FRC routine 
+% is actually built on the SSM-ep toolbox. Users may use the extract_FRC routine 
+% initially. They may explore the SSM-ep toolbox given this toolbox has more functionalities, 
+% e.g., bifurcation analysis.
+% 
+% We call the function SSM_isol2ep, whose arguments can be found via help
+
+help SSM_isol2ep
+%% 
+% In this example, the resonant_modes should be [1 2 3 4 5 6] due to all modes 
+% are involved in the resonance. We have $\omega_1=\omega_2=\omega_3\approx\Omega$ 
+% and then $\mathbf{r}=[1,1,1]$ (mfreqs).  The argument parName can be amp or 
+% freq. When parName='freq'/'amp', the forced response curve with varied excitation 
+% frequency $\Omega$ / excitation amplitude $\epsilon$ is obtained.
+
+resonant_modes = [1 2 3 4 5 6];
+mFreq  = [1 1 1];
+set(S.contOptions,'PtMX',250);
 startep = tic;
-FRC_ep_polar = S.FRC_cont_ep('isol_polar',resonant_modes, order, mFreq, 'freq', freqRange);
+FRC_ep_polar = S.SSM_isol2ep('isol_polar',resonant_modes, order, mFreq, 'freq', freqRange, outdof);
 timings.epPolarFRC = toc(startep);
 %% 
-% Using ep toolbox - Cartesian
+% As seen in the continuation hisotry, the continuation run terminated at a 
+% point where $\rho_3\to0$ (denoted as MX point), which triggers the singularity 
+% of the vector field. As an alternative, we can use Cartesian coordinates to 
+% remove the MX point.
 
 set(S.FRCOptions, 'coordinates','cartesian');
 startep = tic;
-FRC_ep_cart = S.FRC_cont_ep('isol_cart',resonant_modes, order, mFreq, 'freq', freqRange);
+FRC_ep_cart = S.SSM_isol2ep('isol_cart',resonant_modes, order, mFreq, 'freq', freqRange, outdof);
 timings.epCartFRC = toc(startep);
-%%
-% plot results
-f1 = figure('Name','Polar-Norm');
-f2 = figure('Name',['Polar-Amplitude at DOFs ' num2str(outdof)]);
-figs = [f1, f2];
-plot_FRC_full(FRC_ep_polar,outdof,order,'freq','lines',figs,'blue')
-
-f3 = figure('Name','Cart-Norm');
-f4 = figure('Name',['Cart-Amplitude at DOFs ' num2str(outdof)]);
-figs = [f3, f4];
-plot_FRC_full(FRC_ep_cart,outdof,order,'freq','lines',figs,'blue')
 %% Validation using COCO
+% To conclude this example, we use the po-toolbox (collocation method) of COCO 
+% to validate the results obtained from the SSM analysis. As we can see, the results 
+% of the two methods match well. In addition, the runtime of collocation method 
+% is nearly three times of that of the SSM analysis.
 
 nCycles = 100;
 coco = cocoWrapper(DS, nCycles, outdof);

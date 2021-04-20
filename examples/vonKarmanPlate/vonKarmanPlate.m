@@ -1,5 +1,13 @@
 %% A von Karman plate with 1:1 internal resonance
+% In this example, we consider a simply-supported von Karman square plate subject 
+% to harmonic excitation. Due to the geometric symmetry, the natural frequenices 
+% of the second and the third modes are the same. In other words, the system has 
+% 1:1 internal resonance between the two modes. We extract the forced response 
+% curve using SSM reduction. 
 %% Geometry and finite element model
+% We discretize the plate with 200 elements and then 606 degrees-of-freedom. 
+% The dimension of the phase space of the full system is then 1212. As we will 
+% see, the reduced-order model obtained by SSM reduction is four dimensional.
 
 l = 1; % length of domain [m]
 b = 1;  % breadth of domain [m]
@@ -43,19 +51,36 @@ DS.add_forcing(coeffs, kappas);
 
 S = SSM(DS);
 set(S.Options, 'reltol', 0.8,'notation',notation); % 0.8 is used
-%% 4D-SSM based reduction
+%% 
+% *Extract FRC*
+% 
+% Recall that the natural frequencies of the linear modes are given by
+% 
+% $$\omega_{(i,j)}=\left(\frac{i^2}{l^2}+\frac{j^2}{b^2}\right)\pi^2\sqrt{\frac{D}{\rho 
+% t}}$$
+% 
+% where $D$ is the bending stiffness. Given $l=b$, we have $\omega_{(1,2)}=\omega_{(2,1)}$, 
+% namely the 1:1 internal resonance between the second and the third bending modes. 
+% In addition, we have $\omega_{(3,1)}=\omega_{(1,3)}=2\omega_{(1,2)}$, which 
+% implies that the higher modes (1,3) and (3,1) will also be taken as a part of 
+% the spectral subspace in the extract_FRC routine. Here we are mainly concerned 
+% with the 1:1 internal resonance. So we need to specify the spectral subspace, 
+% which can be easily done in the SSM-ep toolbox.
 
-set(S.FRCOptions, 'omegaSampStyle','cocoBD');
+set(S.FRCOptions, 'omegaSampStyle','cocoBD','method','continuation ep');
 set(S.contOptions, 'PtMX', 2500, 'h_max', 5, 'h_min', 1e-4, 'ItMX', 20);
-set(S.FRCOptions, 'initialSolver', 'fsolve', 'outdof', outdof);
-resonant_modes = [3 4 5 6];
+set(S.FRCOptions, 'initialSolver', 'fsolve');
 freqrange = [0.95 1.1]*imag(D(3));
+order     = 5;
+resonant_modes = [3 4 5 6];
 mFreq   = [1 1];
-order   = 5;
-FRC = S.FRC_cont_ep('isol_polar',resonant_modes, order, mFreq, 'freq', freqrange);
-%%
-% plot results
-f1 = figure('Name','Norm');
-f2 = figure('Name',['Amplitude at DOFs ' num2str(outdof')]);
-figs = [f1, f2];
-plot_FRC_full(FRC,outdof,order,'freq','lines',figs,'blue')
+FRC = S.SSM_isol2ep('isol_polar',resonant_modes, order, mFreq, 'freq', freqrange,outdof);
+%% 
+% *Exercises*
+%% 
+% # Use SSM_isol2ep to calculate the forced response curve with varied forcing 
+% amplitude $\epsilon$.
+% # Use SSM_ep2SN to locate the solution manifold of saddle-node bifurcation 
+% periodic orbits.
+% # Use SSM_ep2HB to locate the solution manifold of torus bifurcation periodic 
+% orbits.
