@@ -18,6 +18,12 @@ function BB = extract_backbone(obj, modes, omegaRange, order)
 %
 % It follows that the _backbone curves_ in polar coordinates is given by $\Omega=\frac{b(\rho)}{\rho}$.
 
+f1 = figure('Name','Norm');
+f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+figs = [f1, f2];
+colors = get(0,'defaultaxescolororder');
+
+
 assert(numel(modes)==2,'The analytic backbone computation can only be performed for a two-dimensional SSM/LSM')
 % get options
 [nt, nRho, nOmega, rhoScale, outdof, saveIC]  = ...
@@ -49,7 +55,7 @@ stability = true(size(rho)); psi = zeros(size(rho)); epsilon = 0;
 BB = compute_output_polar2D(rho,psi,stability,epsilon,omega,W0,[],1,nt, saveIC, outdof);
 
 %% plotting
-plot_FRC_full(BB,outdof,order,'freq','lines')
+plot_FRC_full(BB,outdof,order,'freq','lines',figs,colors(1,:));
 totalComputationTime = toc(startBB);
 disp(['Total time spent on backbone curve computation = ' datestr(datenum(0,0,0,0,0,totalComputationTime),'HH:MM:SS')])
 end
