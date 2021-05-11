@@ -2,7 +2,12 @@ function [V, D, W] = linear_spectral_analysis(obj)
 
 if obj.N < obj.Options.Nmax
     if ~issparse(obj.A)
-        [V, LAMBDA, W] = eig(obj.A,obj.B);
+        if norm(obj.B-eye(size(obj.B)))<1e-8
+            [V, LAMBDA, W] = eig(obj.A); % B=I, CONSISTENT WITH SSMTool 1.0
+        else
+            [V, LAMBDA, W] = eig(obj.A,obj.B);
+        end
+        
     else
         [V, LAMBDA, W] = eig(full(obj.A),full(obj.B));
     end
@@ -62,7 +67,7 @@ else
         V = V(:,I);
         
         % left eigenvectors
-        if issymmetric(obj,A) && issymmetric(obj.B)
+        if issymmetric(obj.A) && issymmetric(obj.B)
             W = conj(V);
         else
             [W, Dw] = eigs(obj.A',obj.B',E_max,'smallestabs');
@@ -113,20 +118,25 @@ for j = 1:length(Lambda)
         skip = false;
         continue;
     end    
-    if ~isreal(Lambda(j))
+    if ~isreal(Lambda(j))&& abs(Lambda(j)-conj(Lambda(j+1)))<1e-8*abs(Lambda(j))
         % extract complex eigenpair
         V0 = V(:,j:j+1);
         W0 = W(:,j:j+1);
         Lambda0 = Lambda(j:j+1);
         % sort eigenvalues in the descending order of imaginary parts
         [~,I] = sort(imag(Lambda0),'descend','ComparisonMethod','real');        
-        Lambda(j) = Lambda0(I(1));
-        V(:,j) = V0(:,I(1));
-        W(:,j) = W0(:,I(1));
-        % ensure complex conjugate eigenvalues and eigenvectors 
-        Lambda(j+1) = conj(Lambda(j));                
-        V(:,j+1) = conj(V(:,j));
-        W(:,j+1) = conj(W(:,j));
+        % rearrange the ordre of the pair
+        Lambda([j,j+1]) = Lambda0(I);
+        V(:,[j,j+1]) = V0(:,I);
+        W(:,[j,j+1]) = W0(:,I);
+%         Lambda(j) = Lambda0(I(1));
+%         V(:,j) = V0(:,I(1));
+%         W(:,j) = W0(:,I(1));
+        % ensure complex conjugate eigenvalues and eigenvectors - not true
+        % if A and B are not real
+%         Lambda(j+1) = conj(Lambda(j));                
+%         V(:,j+1) = conj(V(:,j));
+%         W(:,j+1) = conj(W(:,j));
         % move to the next pair of eigenvalues
         skip = true; 
     end
