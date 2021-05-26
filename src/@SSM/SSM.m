@@ -24,6 +24,9 @@ classdef SSM < Manifold
         varargout = SSM_ep2SN(obj,oid,run,lab,parRange,outdof,varargin);
         varargout = SSM_ep2HB(obj,oid,run,lab,parRange,outdof,varargin);
         varargout = SSM_epSweeps(obj,oid,run,lab,epSamps,omRange,outdof,varargin);
+        
+        activate_parallel(obj,varargin);
+        deactivate_parallel(obj);
     end
 end
 

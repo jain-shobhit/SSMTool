@@ -85,7 +85,7 @@ switch obj.Options.notation
         %%
         % First term
         l = min(i,length(F));
-        for j = 2:l
+        for j = 2:l           % Outer for loop can be parallelized - l cores
             % find values for j positive numbers summing up to i
             P = nsumk(j,i,'positive');
             FS = FS + tensor_composition(F{j},W_0,P,SIZE);
@@ -93,9 +93,11 @@ switch obj.Options.notation
         %%
         % Second term
         SR = sptensor(SIZE);
-        for j = 2:i-1
+        % R_0i = R_0(i:-1:2); % used for parfor
+        for j = 2:i-1         % Outer for loop can be parallelized - i-1 cores
             P = ones(j,j) + eye(j,j);
             R_j = {sptensor(speye(m,m)),R_0{i+1-j}};
+            % R_j = {sptensor(speye(m,m)),R_0i{j}}; % used for parfor
             SR = SR + tensor_composition(W_0{j},R_j,P,SIZE);
         end
         L_i = FS - ttm(SR,B,1);
@@ -110,12 +112,13 @@ switch obj.Options.notation
         %% *Solving for SSM coefficients and Reduced dynamics*
         % $${{\mathcal{C}}_{i}}~\mathfrak{vec}\left(\mathbf{S}_{i}\right)=\mathfrak{vec}\left(\mathbf{L}_{i}\right)-\underbrace{\left(\mathbf{I}_{m^{i}}\otimes\mathbf{B}\mathbf{S}_{1}\right)}_{{\mathcal{D}}_{i}}\mathfrak{vec}\left(\mathbf{R}_{i}\right)$$
         %
-        W_0i = sparse(N,m^i);
-        R_0i = sparse(m,m^i);
+        W_0i = zeros(N,m^i); % W_0i is dense in nature
+        R_0i = zeros(m,m^i); % This could be sparse
         
         L_i = reshape(L_i,N,[]);
         nRes = 0;
-        for l = 1:m^i
+        paramStyle = obj.Options.paramStyle;
+        parfor l = 1:m^i
             lambda_l = Lambda_Mi(l);
             C_l = lambda_l * B - A;
             L_il = L_i(:,l);
@@ -124,14 +127,17 @@ switch obj.Options.notation
             J = find(abs(lambda_l - Lambda_M)<abstol);
             
             if ~isempty(J)                
-                switch obj.Options.paramStyle
+                switch paramStyle
                     case 'normalform'
                         %%
                         % Choosing reduced dynamics using (near-)kernel of $\mathcal{C}_i$
+                        R_0il = zeros(m,1); % for slicing use
                         for j = J
                             w_j = W_M(:,j);
-                            R_0i(j,l) = w_j'*L_il;
+                            % R_0i(j,l) = w_j'*L_il;
+                            R_0il(j) = w_j'*L_il;
                         end
+                        R_0i(:,l) = R_0il;
                     case 'graph'
                         R_0i(:,l) = W_M'*L_il;
                 end                
@@ -149,7 +155,7 @@ switch obj.Options.notation
             W_0i(:,l) = lsqminnorm(C_l,b_l);
         end
         disp([num2str(nRes) ' (near) inner resonance(s) detected at order ' num2str(i)])
-        
+                
         W_0i = reshape(sptensor(W_0i(:)), [N, m*ones(1,i)]);
         R_0i = reshape(sptensor(R_0i(:)), [m, m*ones(1,i)]);
         W_0i = permute(W_0i,[1, ndims(W_0i):-1:2]);
@@ -217,7 +223,7 @@ switch obj.Options.notation
         L_k    = reshape(L_k,N,z_k);
         
         % Solve the linear system for the SSM-coefficients
-        for f = 1:z_k
+        parfor f = 1:z_k
             C_k        = B*Lambda_Mk_vector(f)-A;
             W_0i(:,f) = lsqminnorm(C_k,L_k(:,f));
         end

@@ -115,8 +115,10 @@ for order = 2:min(k,degree)
         
         %loop over all the order k multi-indices with index below center
         %index in conjugate ordering
-        for f = 1:z_k
+        numRowPi = size(pi,1);
+        parfor f = 1:z_k
             
+            pif = zeros(numRowPi,1);
             %loop over unique amounts of nonzero entries in the
             %multi-indices m
             for i = 1:size(sz_un,2)
@@ -308,8 +310,10 @@ for order = 2:min(k,degree)
                 %sum over combos and put into position
                 
                 list_3 = repelem([1:sumidx].',sum(Cond,1));
-                pi(idx,f) = accumarray(reshape(list_3,[],1),pi_dum);
+                % pi(idx,f) = accumarray(reshape(list_3,[],1),pi_dum);
+                pif(idx) = accumarray(reshape(list_3,[],1),pi_dum);
             end
+            pi(:,f) = pif;
         end
         %%
         % This last step multiplies the coefficients to the forcing term they correspond
