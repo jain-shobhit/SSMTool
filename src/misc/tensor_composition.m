@@ -15,7 +15,7 @@ function AB = tensor_composition(A,B,P,SIZE)
 % where $\mathbf{A\cdot\mathbf{B} = \mathbf{A}\times_{2}\mathbf{B}^{(1)}\times_3\mathbf{B}^{(2)}\dots\times_{n+1}\mathbf{B}^{(n)}$ 
 % is a Tucker-type product. 
 AB = sptensor(SIZE);
-for j_p = 1:size(P,1)
+parfor j_p = 1:size(P,1)
     p = P(j_p,:);
     AB_p = tensor_product(A,B(p));
     AB = AB + AB_p;
