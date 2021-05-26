@@ -117,6 +117,11 @@ natFreq = imag(lambda);
 resFreqID = intersect(find(natFreq>Omega(1)), find(natFreq<Omega(end)));
 resFreq = natFreq(resFreqID);
 resLambda = lambda(resFreqID);
+% remove repetitive eigenvalues, e.g., 1:1 internal resonance
+dFreq = resFreq(2:end)-resFreq(1:end-1);
+idrep = abs(dFreq)<1e-3*resFreq(1:end-1);
+resFreq(idrep)   = [];
+resLambda(idrep) = [];
 assert(~isempty(resFreq),'Input frequency range should include at least one natural frequency'); % we could still program this case
 end
 

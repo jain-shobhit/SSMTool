@@ -40,9 +40,9 @@ outdof = [1 2 3];
 %% 
 % We are interested in the FRC over the frequency span [0.995 1.016]. We can 
 % call the routine extract_FRC to extract the FRC. All the three natural frequencies 
-% are inside the frequency span. The frequency span is divided into three subintervals 
-% following our algorithm. Three continuation runs are involved to get the FRC 
-% for the three subintervals.
+% are inside the frequency span. The frequency span is divided into a single subinterval 
+% because of the 1:1:1 internal resonance. A single continuation run is involved 
+% to get the FRC for the subinterval.
 
 set(S.Options, 'IRtol',0.02,'notation', 'multiindex','contribNonAuto',true)
 set(S.FRCOptions, 'method','continuation ep')
