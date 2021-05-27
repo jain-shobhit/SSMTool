@@ -1,4 +1,4 @@
-# SSMTool-2.0: Computation of invariant manifolds in high-dimensional mechanics problems
+# SSMTool 2.1: Computation of invariant manifolds in high-dimensional mechanics problems
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4614201.svg)](https://doi.org/10.5281/zenodo.4614201)
 
 This package computes invariant manifolds in high-dimensional dynamical systems using the Parametrization Method with special attention to the computation of Spectral Submanifolds (SSM) and forced response curves in finite element models. 
