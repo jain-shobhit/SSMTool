@@ -7,8 +7,8 @@ These invariant manifolds are computed in the physical coordinates using only th
 
 **S. Jain, G. Haller (2021) How to Compute Invariant Manifolds and their Reduced Dynamics in High-Dimensional Finite-Element Models? Preprint:** https://arxiv.org/abs/2103.10264
 
-
-In this version, we demonstrate the computational methodology over small academic examples as well high-dimensional finite element problems using the FE package [4]. We have included a demonstration of SSM computation over the following finite element examples to compute **forced response curves** 
+In this version, we demonstrate the computational methodology over small academic examples as well high-dimensional finite element problems using the FE package [4]. 
+We have included a demonstration of SSM computation over the following finite element examples to compute forced response curves.
 
 - Oscillator chain: two, three and n degrees of freedom. 
 - Bernouli beam: modeled using linear finite elements with localized nonlinearity in the form of a cubic spring
@@ -29,3 +29,4 @@ In order to install the program, simply run the install.m file in the main folde
 Note: When running the examples in the livescript files (workbooks), please ensure that the MATLAB 'Current Folder' is the directory of the specific example.
 
 Please report any issues/bugs to Shobhit Jain shjain@ethz.ch
+
