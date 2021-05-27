@@ -24,6 +24,11 @@ classdef FRCOptions < matlab.mixin.SetGet
         
         p0 = [];                   % parameters (epsilon,omega) in initial solution guess used in continuation
         z0 = [];                   % states (in slow-time reduced dynamics) in initial solution guess used in continuation
+        
+        nonAutoParRedCom = false   % compute_perturbed_wisker is called in the parallel computation of non-autonomous SSMs for
+                                   % each sampled excitation frequency. The manifold object is transferred in such a call. This 
+                                   % communication cost is intenstive in parallel computation. To reduce the communication load,
+                                   % we calculate the non-autonomous directly, instead of calling the routine if the field is true 
     end
     
     methods      

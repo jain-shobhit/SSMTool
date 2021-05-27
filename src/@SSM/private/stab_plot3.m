@@ -1,4 +1,4 @@
-function stab_plot(x,y,S,order,varargin)
+function stab_plot3(x,y,z,S,order,varargin)
 % This function is adapted from stab_plot in coco_plot_bd in coco
 
 II  = 1;
@@ -12,7 +12,7 @@ ST{2} = {'b-','LineWidth',1.5};
 while true
   if II>=EI; break; end
   [I, I0] = next_index(EI, S, I, II);
-  fig = plot(x(II:I0), y(II:I0), ST{S(II)+1}{:});
+  fig = plot3(x(II:I0), y(II:I0), z(II:I0), ST{S(II)+1}{:});
   figs = [figs fig];
   stab = [stab S(II)+1];
   II = I0;

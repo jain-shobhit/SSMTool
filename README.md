@@ -7,12 +7,16 @@ These invariant manifolds are computed in the physical coordinates using only th
 
 **S. Jain, G. Haller (2021) How to Compute Invariant Manifolds and their Reduced Dynamics in High-Dimensional Finite-Element Models? Preprint:** https://arxiv.org/abs/2103.10264
 
+In this version, we demonstrate the computational methodology over small academic examples as well high-dimensional finite element problems using the FE package [4]. 
+We have included a demonstration of SSM computation over the following finite element examples to compute forced response curves.
 
-In this version, we demonstrate the computational methodology over small academic examples as well high-dimensional finite element problems using the FE package [4]. We have included a demonstration of SSM computation over the following finite element examples
-
-- von Karman straight beam in 2D
-- von Karman shell-based shallow curved panel in 3D
-- NACA airfoil based aircraft wing model
+- Oscillator chain: two, three and n degrees of freedom. 
+- Bernouli beam: modeled using linear finite elements with localized nonlinearity in the form of a cubic spring
+- von Karman straight beam in 2D: geometrically nonlinear finite element model with and without **internal resonances** (IR)
+- von Karman plate in 3D: geometrically nonlinear finite element model of a flat plate with and without **parallel computing**  
+- von Karman shell-based shallow curved panel in 3D: geometrically nonlinear finite element model
+- Prismatic beam: nonlinear beam PDE discretized using Galerkin method onto a given number of modes.
+- NACA airfoil based aircraft wing model: shell-based nonlinear finite element model containing more than 100,000 degrees of freedom. 
 
 This package uses the following external open-source packages:
 
@@ -25,3 +29,4 @@ In order to install the program, simply run the install.m file in the main folde
 Note: When running the examples in the livescript files (workbooks), please ensure that the MATLAB 'Current Folder' is the directory of the specific example.
 
 Please report any issues/bugs to Shobhit Jain shjain@ethz.ch
+

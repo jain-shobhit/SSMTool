@@ -15,13 +15,16 @@ classdef EssentialBoundary < handle
     end
     
     methods
-        function self = EssentialBoundary(nDOFs,nDOFPerNode,constrainedNodes,constrainedDOF,value)
+        function self = EssentialBoundary(nDOFs,nDOFPerNode)
+            self.nDOFs = nDOFs;
+            self.nDOFPerNode = nDOFPerNode;
+        end
+        
+        function apply_Dirichlet_BC(self,constrainedNodes,constrainedDOF,value)
             % DirichletNodes : vector containing node IDs
             % ConstrainedDOF : vector (or scalar) containing the index of the
             %                    nodal DOFs whose value is prescribed
             % value : scalar which gives the Dirichlet BC value
-            self.nDOFs = nDOFs;
-            self.nDOFPerNode = nDOFPerNode;
             
             if ~isscalar(value)
                 error('Please specify a scalar value for Dirichlet boundary condition')
@@ -87,4 +90,3 @@ classdef EssentialBoundary < handle
     end
     
 end
-

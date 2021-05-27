@@ -63,8 +63,21 @@ fdata.mFreqs = mFreqs;
 fdata.iNonauto = iNonauto;
 fdata.rNonauto = rNonauto;
 fdata.kNonauto = kNonauto;
-fdata.W_0   = W_0;
-fdata.W_1   = W_1;
+% put W_0 and W_1 in fdata is a bad idea because it will be stored in disk
+% for each saved continuation solution. As an alternative, we save W_0 and
+% W_1 in disk here under folder data. When needed, they will be loaded into
+% memory.
+% fdata.W_0   = W_0;
+% fdata.W_1   = W_1;
+data_dir = fullfile(pwd,'data');
+if ~exist(data_dir, 'dir')
+    mkdir(data_dir);
+end
+wdir = fullfile(data_dir,'SSM.mat');
+SSMcoeffs = struct();
+SSMcoeffs.W_0 = W_0;
+SSMcoeffs.W_1 = W_1;
+save(wdir, 'SSMcoeffs');
 fdata.order = order;
 fdata.modes = resModes;
 
@@ -132,48 +145,84 @@ coco(prob, runid, [], 1, cont_args, parRange);
 FRC = ep_reduced_results(runid,sampStyle,ispolar,isomega,args1,args2,'plot-off');
 
 %% FRC in physical domain
-Zout_frc  = [];
-Znorm_frc = [];
-Aout_frc  = [];
+om   = FRC.om;
+epsf = FRC.ep;
+state   = FRC.z;
+numOm   = numel(om);
+noutdof = numel(outdof);
+Zout_frc  = cell(numOm,1);
+Znorm_frc = zeros(numOm,1);
+Aout_frc  = zeros(numOm,noutdof);
 
 if saveIC
-    Z0_frc = []; % initial state
+    Z0_frc = zeros(numOm,obj.System.N); % initial state
 end
 timeFRCPhysicsDomain = tic;
 
 % Loop around a resonant mode
-om   = FRC.om;
-epsf = FRC.ep;
-for j = 1:numel(om)
-    % compute non-autonomous SSM coefficients
-    if isomega 
-        obj.System.Omega = om(j);
-        if obj.Options.contribNonAuto
-            [W_1, R_1] = obj.compute_perturbed_whisker(order);
+if obj.FRCOptions.nonAutoParRedCom
+    kappa_set= obj.System.Fext.kappas;
+    F_kappa = obj.System.Fext.coeffs;  % each column corresponds to one kappa
+    A = obj.System.A;           % A matrix
+    B = obj.System.B;           % B matrix
+    W_M = obj.E.adjointBasis;   % Right eigenvectors of the modal subspace
+    V_M = obj.E.basis;          % Left eigenvectors of the modal subspace
+    reltol = obj.Options.reltol;
+    % *Near external resonances and Leading order reduced dynamics*
+    Lambda_M_vector = obj.E.spectrum;
+    
+    % transfer minimum data for reducing communication load
+    W1 = leading_order_nonauto_SSM(A,B,W_M,V_M,Lambda_M_vector,kappa_set,F_kappa,reltol,kNonauto,iNonauto,rNonauto,order,om);
 
-            R_10 = R_1{1}.coeffs;
-            assert(~isempty(R_10), 'Near resonance does not occur, you may tune tol');
-            f = R_10((kNonauto-1)*2*m+2*iNonauto-1);
+    % map it back to physical coordinates
+    for j=1:numel(om)
+        % Forced response in Physical Coordinates
+        statej = state(j,:);
+        [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W1{j}, statej, epsf(j), nt, mFreqs, outdof);
 
-            assert(norm(f-rNonauto)<1e-3*norm(f), 'inner resonance assumption does not hold');
+        % collect output in array
+        Aout_frc(j,:) = Aout;
+        Zout_frc{j}   = Zout;
+        Znorm_frc(j)  = z_norm;
 
-%             fprintf('the forcing frequency %.4d is nearly resonant with the eigenvalue %.4d + i%.4d\n', om(j), real(lambda(1)),imag(lambda(1)))
-        else
-            W_1 = [];
+        if saveIC
+            Z0_frc(j,:) = Zic; % initial state
         end
+    end  
+else
+    parfor j = 1:numel(om)
+        % compute non-autonomous SSM coefficients
+        if isomega 
+            set_omega(obj,om(j));
+            if obj.Options.contribNonAuto
+                [W_1j, R_1] = obj.compute_perturbed_whisker(order);
+
+                R_10 = R_1{1}.coeffs;
+                assert(~isempty(R_10), 'Near resonance does not occur, you may tune tol');
+                f = R_10((kNonauto-1)*2*m+2*iNonauto-1);
+
+                assert(norm(f-rNonauto)<1e-3*norm(f), 'inner resonance assumption does not hold');
+
+    %             fprintf('the forcing frequency %.4d is nearly resonant with the eigenvalue %.4d + i%.4d\n', om(j), real(lambda(1)),imag(lambda(1)))
+            else
+                W_1j = [];
+            end
+        else
+            W_1j = W_1;
+        end
+        % Forced response in Physical Coordinates
+        statej = state(j,:);
+        [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W_1j, statej, epsf(j), nt, mFreqs, outdof);
+
+        % collect output in array
+        Aout_frc(j,:) = Aout;
+        Zout_frc{j}   = Zout;
+        Znorm_frc(j)  = z_norm;
+
+        if saveIC
+            Z0_frc(j,:) = Zic; % initial state
+        end 
     end
-    % Forced response in Physical Coordinates
-    state = FRC.z(j,:);
-    [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W_1, state, epsf(j), nt, mFreqs, outdof);
-
-    % collect output in array
-    Aout_frc = [Aout_frc; Aout];
-    Zout_frc = [Zout_frc; Zout];
-    Znorm_frc = [Znorm_frc; z_norm];
-
-    if saveIC
-        Z0_frc = [Z0_frc; Zic]; % initial state
-    end 
 end
 %% 
 % Record output
@@ -198,7 +247,7 @@ FRC = array2structArray(FRC);
 % end
 
 varargout{1} = FRC;
-fdir = [pwd,'\data\',runid,'\SSMep.mat'];
+fdir = fullfile(pwd,'data',runid,'SSMep.mat');
 save(fdir, 'FRC','FRCinfo');
 end
 
@@ -352,15 +401,14 @@ Znorm = FRCx.Znorm_frc;
 Zic   = FRCx.Z0_frc;
 
 saveIC = isempty(Zic);
-numout = size(Aout,2);
 
 numPts = numel(om);
 FRCy   = cell(numPts,1);
 for i=1:numPts
-    FRC = struct('rho', rho(i), 'stability', st(i), 'Omega', om(i) ,...
-    'epsilon', ep(i), 'Aout', Aout(i,:), 'Zout', Zout((i-1)*numout+1:i*numout,:),...
+    FRC = struct('rho', rho(i,:), 'stability', st(i), 'Omega', om(i) ,...
+    'epsilon', ep(i), 'Aout', Aout(i,:), 'Zout', Zout{i},...
     'Znorm', Znorm(i), 'Zic', [], 'isSN', false, 'isHB', false, ...
-    'state', state(i), 'th', th(i));
+    'state', state(i,:), 'th', th(i,:));
     if saveIC
         FRC.Zic = Zic(i,:);
     end
@@ -374,5 +422,9 @@ for i=1:numPts
 end
 
 FRCy = cat(1,FRCy{:});
-end
+end 
 
+
+function set_omega(obj,omega)
+obj.System.Omega = omega;
+end
