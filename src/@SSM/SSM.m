@@ -17,14 +17,27 @@ classdef SSM < Manifold
         varargout = FRC_cont_ep(obj,oid,modes,order,mFreq,parName,parRange,outdof,varargin);
         
         [FRC] = FRC_level_set(obj, resMode, order, parName, parRange) 
-        
+        % SSM-ep toolbox
         varargout = SSM_isol2ep(obj,oid,modes,order,mFreq,parName,parRange,outdof,varargin);
         varargout = SSM_ep2ep(obj,oid,run,lab,parName,parRange,outdof,varargin);
         varargout = SSM_BP2ep(obj,oid,run,lab,parName,parRange,outdof,varargin);
         varargout = SSM_ep2SN(obj,oid,run,lab,parRange,outdof,varargin);
         varargout = SSM_ep2HB(obj,oid,run,lab,parRange,outdof,varargin);
         varargout = SSM_epSweeps(obj,oid,run,lab,epSamps,omRange,outdof,varargin);
-        
+        % SSM-po toolbox
+        SSM_isol2po(obj,oid,run,lab,initsol,parName,parRange,outdof,varargin);
+        SSM_HB2po(obj,oid,run,lab,parName,parRange,outdof,varargin);
+        SSM_po2po(obj,oid,run,lab,parName,parRange,outdof,varargin);
+        SSM_BP2po(obj,oid,run,lab,parName,parRange,outdof,varargin);
+        SSM_po2TR(obj,oid,run,lab,parRange,outdof,varargin);
+        SSM_po2SN(obj,oid,run,lab,parRange,outdof,varargin);
+        SSM_po2PD(obj,oid,run,lab,parRange,outdof,varargin);
+        % SSM-tor toolbox
+        SSM_TR2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);
+        SSM_tor2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);
+        SSM_BP2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);        
+        varargout = auto_po_solver(obj,R_0,oid,t0,p0,coordinates);
+        % parallel computation
         activate_parallel(obj,varargin);
         deactivate_parallel(obj);
     end

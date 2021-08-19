@@ -15,6 +15,8 @@ addpath(genpath(fullfile(maindir, extdir, 'YetAnotherFEcode','src')));
 
 addpath(genpath(fullfile(maindir, extdir, 'YetAnotherFEcode','examples')));
 
+addpath(genpath(fullfile(maindir, extdir, 'torus_collocation','toolbox')));
+
 addpath(fullfile(maindir, extdir, 'Wrappers'));
 
 addpath(fullfile(maindir, 'src'));

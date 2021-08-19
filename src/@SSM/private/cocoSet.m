@@ -37,6 +37,9 @@ end
 if opts.ItMX~=default.ItMX
     prob = coco_set(prob, 'corr', 'ItMX', opts.ItMX);
 end
+if opts.TOL~=default.TOL
+    prob = coco_set(prob, 'corr', 'TOL', opts.TOL);
+end
 % settings for collocation
 if opts.NTST~=default.NTST
     prob = coco_set(prob, 'coll', 'NTST', opts.NTST);

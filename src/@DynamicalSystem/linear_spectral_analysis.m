@@ -16,7 +16,7 @@ else
     E_max = obj.Options.Emax;
     n = obj.n;
     
-    if obj.order == 2
+    if obj.order == 2 && obj.Options.RayleighDamp
         
     disp(['Due to high-dimensionality, we compute only the first ' num2str(E_max) ' eigenvalues with the smallest magnitude. These would also be used to compute the spectral quotients'] )
     % Computing undamped eigenvalues and eigenvectors
@@ -65,6 +65,11 @@ else
         [Lambda_sorted,I] = sort(diag(Dv),'descend','ComparisonMethod','real');
         LAMBDA = diag(Lambda_sorted);
         V = V(:,I);
+        % rescale V w.r.t mass matrix
+        for j=1:numel(I)
+            vs = V(1:obj.n,j)'*obj.M*V(1:obj.n,j);
+            V(:,j) = V(:,j)/sqrt(abs(vs));
+        end
         
         % left eigenvectors
         if issymmetric(obj.A) && issymmetric(obj.B)

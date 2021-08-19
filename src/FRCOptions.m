@@ -29,6 +29,11 @@ classdef FRCOptions < matlab.mixin.SetGet
                                    % each sampled excitation frequency. The manifold object is transferred in such a call. This 
                                    % communication cost is intenstive in parallel computation. To reduce the communication load,
                                    % we calculate the non-autonomous directly, instead of calling the routine if the field is true 
+                                   
+        parSamps = []              % solution at specific parameter values used for comparison or verification
+        torRotDiret = 'pos'        % 'pos', 'neg' (rotation direction of tori)
+        torNumSegs  = 10           % number of Fourier modes in the approximation of tori
+        torPurtb    = 1e-4         % perturbation to Neimark-Sacker periodic orbits to yield initial tori
     end
     
     methods      

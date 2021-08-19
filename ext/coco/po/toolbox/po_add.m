@@ -93,7 +93,8 @@ switch command
     nrmid = sprintf('||%s||_{2,MPD}', xid); % mean + deviation plotting measure
     maxid = sprintf('MAX(%s)', xid);
     minid = sprintf('MIN(%s)', xid);
-    res   = { nrmid, maxid, minid };
+    devid = sprintf('||%s||_{2,D}', xid);   % deviation plotting measure
+    res   = { nrmid, maxid, minid, devid };
     
   case 'data'
     chart = varargin{1};
@@ -106,7 +107,7 @@ switch command
     dev  = bsxfun(@minus, xbp, xav);
     ndv  = reshape(iw*(dev(:).^2), maps.x_shp);
     mpd  = norm(xav)+sqrt(sum(sum(ndv,2),1));
-    res  = { mpd , max(xbp,[],2) , min(xbp,[],2) };
+    res  = { mpd , max(xbp,[],2) , min(xbp,[],2), mpd-norm(xav) };
     
 end
 
