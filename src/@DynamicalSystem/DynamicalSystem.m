@@ -83,52 +83,51 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         end
         
         function F = get.F(obj)
-            
-            if obj.order ==1
-                    F = obj.F;
-                    
-            elseif obj.order == 2
                 
-                switch obj.Options.notation
-                   
-                    case 'tensor'
-                        d = length(obj.fnl) + 1;
-                        F = cell(1,d);
-                        F{1} = sptensor(obj.A);
-                        
-                        for j = 2:d
-                            sizej = obj.N*ones(1,j+1);
-                            if isempty(obj.fnl{j-1})
-                                F{j} = sptensor(sizej);
-                            else                                
-                                subsj = obj.fnl{j-1}.subs;
-                                valsj = -obj.fnl{j-1}.vals;
-                                F{j} = sptensor(subsj,valsj,sizej);
-                            end
-                        end
+            switch obj.Options.notation
 
-                    case 'multiindex'
-                        d = length(obj.fnl) + 1;
-                        F = cell(1,d);
-                        F{1} = tensor_to_multi_index(sptensor(obj.A));
-                        
-                        for j = 2:d
-                            sizej = obj.N*ones(1,j+1);
-                            if isempty(obj.fnl{j-1})
-                                F{j} = [];
-                            else                                
-                                subsj = obj.fnl{j-1}.subs;
-                                valsj = -obj.fnl{j-1}.vals;
-                                F{j} = tensor_to_multi_index(sptensor(subsj,valsj,sizej));
+                case 'tensor'
+                    d = length(obj.fnl) + 1;
+                    F = cell(1,d);
+                    F{1} = sptensor(obj.A);
+
+                    for j = 2:d
+                        sizej = obj.N*ones(1,j+1);
+                        if isempty(obj.fnl{j-1})
+                            F{j} = sptensor(sizej);
+                        else                                
+                            subsj = obj.fnl{j-1}.subs;
+                            valsj = -obj.fnl{j-1}.vals;
+                            if obj.order==1
+                                valsj = -valsj;
                             end
+                            F{j} = sptensor(subsj,valsj,sizej);
                         end
-                        
-                    otherwise
-                        error('The option should be tensor or multiindex.');
-                        
-                end
-            end           
-            
+                    end
+
+                case 'multiindex'
+                    d = length(obj.fnl) + 1;
+                    F = cell(1,d);
+                    F{1} = tensor_to_multi_index(sptensor(obj.A));
+
+                    for j = 2:d
+                        sizej = obj.N*ones(1,j+1);
+                        if isempty(obj.fnl{j-1})
+                            F{j} = [];
+                        else                                
+                            subsj = obj.fnl{j-1}.subs;
+                            valsj = -obj.fnl{j-1}.vals;
+                            if obj.order==1
+                                valsj = -valsj;
+                            end                            
+                            F{j} = tensor_to_multi_index(sptensor(subsj,valsj,sizej));
+                        end
+                    end
+
+                otherwise
+                    error('The option should be tensor or multiindex.');
+
+            end            
             
         end
             
@@ -168,12 +167,22 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         [V, D, W] = linear_spectral_analysis(obj)
         
         function add_forcing(obj,coeffs,kappas,varargin)
-            obj.fext.coeffs = coeffs;
-            obj.fext.kappas = kappas;   
-            if nargin == 4
-                obj.fext.epsilon = varargin{1};
-            else
-                obj.fext.epsilon = 1;
+            if obj.order==1
+                obj.Fext.coeffs = coeffs;
+                obj.Fext.kappas = kappas;   
+                if nargin == 4
+                    obj.Fext.epsilon = varargin{1};
+                else
+                    obj.Fext.epsilon = 1;
+                end                
+            elseif obj.order==2
+                obj.fext.coeffs = coeffs;
+                obj.fext.kappas = kappas;   
+                if nargin == 4
+                    obj.fext.epsilon = varargin{1};
+                else
+                    obj.fext.epsilon = 1;
+                end
             end
         end
         

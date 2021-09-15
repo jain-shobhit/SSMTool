@@ -84,6 +84,7 @@ else
     
 end
 
+[V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W);
 [V, D, W] = sort_modes(V, LAMBDA, W);
 [V,W] =  normalize_modes(V,W,obj.B);
 
@@ -160,4 +161,16 @@ mu = diag(W'*B*V);
 % W = W*diag(1./(sqrt(mu)'));
 
 W = W*diag(1./(mu'));
+end
+
+function [V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W)
+%REMOVE_STIFF_MODES: This function removes modes with infinite eigenvalues
+D = diag(LAMBDA);
+D = abs(D);
+n = numel(D);
+idx1 = find(D==inf);
+idx2 = setdiff(1:n, idx1);
+V = V(:,idx2);
+W = W(:,idx2);
+LAMBDA = LAMBDA(idx2,idx2);
 end
