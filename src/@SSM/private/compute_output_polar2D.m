@@ -10,7 +10,7 @@ FRC = struct('rho', cell(numel(rho0),1), 'psi', [], 'stability', [], ...
         p = polar2complex(rho0(k),psi0(k),eta,nt);
         
         % periodic response in Physical Coordinates
-        z = reduced_to_full(p,W0,W1,epsilon);
+        z = reduced_to_full_traj(linspace(0,2*pi,nt),p,W0,W1,epsilon,1);
         
         % extract output
         [FRC(k).rho, FRC(k).psi, FRC(k).Omega, FRC(k).stability] = ...

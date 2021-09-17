@@ -7,9 +7,14 @@ elseif nargin ==6
     W_1 = varargin{1};
     epsilon = varargin{2};
     om = varargin{3};
-    W_10 = W_1{1};
-    phi = om*t; % assuming single periodic frequency
-    z =  epsilon*real( W_10.coeffs * exp(1i * W_10.kappas * phi));
+    if ~isempty(W_1)
+        W_10 = W_1{1};
+        phi = om*t; % assuming single periodic frequency
+        z =  epsilon*real( W_10.coeffs * exp(1i * W_10.kappas * phi));
+    else
+        N = size(W_0{1}.coeffs ,1);
+        z = zeros(N,1);
+    end
 else
     error('Incorrect number of arguments: Check input')
 end

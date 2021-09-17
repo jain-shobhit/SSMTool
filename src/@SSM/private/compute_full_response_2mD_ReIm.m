@@ -9,7 +9,7 @@ p(2:2:end,:)   = conj(z);
 % 
 % Full system response: $\mathbf{z}(t) = \mathbf{S}(\mathbf{p}(\Omega t), \Omega    
 % t)$
-z = reduced_to_full(p,W_0,W_1,epsilon);
+z = reduced_to_full_traj(phi,p,W_0,W_1,epsilon,1);
 %
 % Timeseries at outdof
 Zout = z(outdof,:);
