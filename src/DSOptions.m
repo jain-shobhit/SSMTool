@@ -5,7 +5,7 @@ classdef DSOptions < matlab.mixin.SetGet
         Nmax = 100; % maximum dimensionality up to which all eigenvalues would be computed for first order systems
         Emax = 10;   % If all eigenvalues are not computed, then we use only first E_max eigenvalues for checking outer resonance.
         outDOF = []; % output degree of freedom
-        RayleighDamp  = true; % damping matrix of second-order system
+        RayleighDamping  = true; % damping matrix of second-order system
         HarmonicForce = true; % external forcing
     end
     methods

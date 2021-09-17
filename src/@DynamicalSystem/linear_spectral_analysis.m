@@ -16,7 +16,7 @@ else
     E_max = obj.Options.Emax;
     n = obj.n;
     
-    if obj.order == 2 && obj.Options.RayleighDamp
+    if obj.order == 2 && obj.Options.RayleighDamping
         
     disp(['Due to high-dimensionality, we compute only the first ' num2str(E_max) ' eigenvalues with the smallest magnitude. These would also be used to compute the spectral quotients'] )
     % Computing undamped eigenvalues and eigenvectors

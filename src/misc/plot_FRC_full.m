@@ -12,7 +12,11 @@ function plot_FRC_full(FRC,outdof,order,ParName,plotStyle,figs,color)
 switch ParName
     case 'freq'
         xlab = '$\Omega$';
-        Par  = [FRC.Omega];
+        if isfield(FRC,'Omega')
+            Par  = [FRC.Omega];
+        elseif isfield(FRC,'om')
+            Par  = [FRC.om];
+        end
     case 'amp'
         xlab = '$\epsilon$';
         Par  = [FRC.epsilon];

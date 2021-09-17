@@ -109,7 +109,7 @@ for i=1:numel(labs)
     om  = soli.p(1);
     Ti  = soli.T;
     assert(abs(om-omeg(i))<1e-3*omeg(i), 'Read wrong solution from data');
-    fprintf('Interpolation at frequency %d\n', om);
+    fprintf('Interpolation at (omega,epsilon) = (%d,%d)\n', om, soli.p(2));
     tsamp   = linspace(0,2*pi/om/min(mFreqs),nt);
     numSegs = numel(tbp);
     ys = zeros(nt,dim,numSegs);
@@ -151,7 +151,8 @@ labMaxRadius = labs(idxMaxRadius);
 labMaxRadius = find(labMaxRadius==labs);
 ys      = qTr{labMaxRadius};
 numSegs = nSeg(labMaxRadius);
-fprintf('Visualization of toru at frequency %d\n', omeg(labMaxRadius));
+fprintf('Visualization of toru at (omega,epsilon)=(%d,%d)\n',...
+    omeg(labMaxRadius),epsf(labMaxRadius));
 
 % visualization of quasi-periodic trajectories
 ya    = ys(1,:,:);

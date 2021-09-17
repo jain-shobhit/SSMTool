@@ -41,5 +41,11 @@ classdef SSM < Manifold
         activate_parallel(obj,varargin);
         deactivate_parallel(obj);
     end
+    
+    methods (Access = protected)
+        FRC = SSM_cont_ep(obj,type,oid,run,lab,parName,parRange,outdof,varargin);
+        varargout = SSM_cont_po(obj,type,oid,run,lab,initsol,parName,parRange,outdof,varargin);
+        varargout = SSM_cont_tor(obj,type,oid,run,lab,parName,parRange,outdof,varargin)
+    end
 end
 
