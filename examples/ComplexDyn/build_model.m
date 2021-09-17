@@ -8,7 +8,7 @@ Lambda = diag(Lambda);
 
 V = V(:,I); % arrange the order based on the real parts and then imag parts
 
-F2 = sptensor([4 4 4]);
+% F2 = sptensor([4 4 4]);
 F3 = sptensor([4,4,4,4]);
 switch eqform
     case 'non-diagonal'
@@ -38,5 +38,5 @@ switch eqform
         error('please select from {diagonal, non-diagonal}');
 end
 
-F = {sptensor(A),F2,F3};
+F = {[],F3};
 end
