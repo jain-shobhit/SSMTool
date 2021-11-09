@@ -44,7 +44,11 @@ for j = 1:numel(ORDER)
     % detect resonant eigenvalues in the parameter range
     switch lower(parName)
         case 'freq'
-            assert(~isempty(obj.System.fext.epsilon), 'The epsilon field is empty in the dynamical system external forcing');
+            if ~isempty(obj.System.fext)
+                assert(~isempty(obj.System.fext.epsilon), 'The epsilon field is empty in the dynamical system external forcing');
+            else
+                assert(~isempty(obj.System.Fext.epsilon), 'The epsilon field is empty in the dynamical system external forcing');
+            end
             [resLambda,resFreq] = find_eigs_in_freq_range(parRange,lambda);
             % obtain subintervals around each resonant eigenvalue
             [parNodes, nSubint] = subdivide_freq_range(parRange, resFreq);
@@ -91,7 +95,7 @@ for j = 1:numel(ORDER)
     totalComputationTime(j) = toc(startFRC);
     
     %% plot FRC in physical coordinates
-    plot_FRC_full(FRC,obj.FRCOptions.outdof,order,parName,plotStyle, figs, colors(j,:))
+    plot_FRC(FRC,obj.FRCOptions.outdof,order,parName,plotStyle, figs, colors(j,:))
     
 end
 

@@ -1,4 +1,4 @@
-function plot_FRC_full(FRC,outdof,order,ParName,plotStyle,figs,color)
+function plot_FRC(FRC,outdof,order,ParName,plotStyle,figs,color)
 %% PLOT_FRC_FULL This function plots forced response curve.
 %
 % PLOT_FRC_FULL(FRC,OUTDOF,ORDER,PARNAME,PLOTSTYLE,FIGS,COLOR)

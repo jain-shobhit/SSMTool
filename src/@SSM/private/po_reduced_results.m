@@ -151,7 +151,7 @@ labMaxRadius = labs(idxMaxRadius);
 labMaxRadius = find(labMaxRadius==labs);
 ys      = qTr{labMaxRadius};
 numSegs = nSeg(labMaxRadius);
-fprintf('Visualization of toru at (omega,epsilon)=(%d,%d)\n',...
+fprintf('Visualization of torus at (omega,epsilon)=(%d,%d)\n',...
     omeg(labMaxRadius),epsf(labMaxRadius));
 
 % visualization of quasi-periodic trajectories

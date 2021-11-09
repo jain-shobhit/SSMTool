@@ -19,15 +19,15 @@ if numel(varargin)>0 && strcmp(varargin{1},'lines')
         if numOutdof>1
             for k=1:numOutdof
                subplot(numOutdof,1,k); hold on
-               stab_plot(Par,Aout(:,k),stab,order,'nolegends');
+               stab_plot(Par,Aout(:,k),stab,order,'blue','nolegends');
             end
         else
-            stab_plot(Par,Aout,stab,order,'nolegends');
+            stab_plot(Par,Aout,stab,order,'blue','nolegends');
         end
         end
     else
         figure; hold on
-        stab_plot(Par,Znorm,stab,order);
+        stab_plot(Par,Znorm,stab,order,'blue');
         SNHB = false;
         if numel(varargin)>1 && iscell(varargin{2})
             SNHB = true;
@@ -55,7 +55,7 @@ if numel(varargin)>0 && strcmp(varargin{1},'lines')
         numOutdof = numel(outdof);
         for k=1:numOutdof
            subplot(numOutdof,1,k); hold on
-           stab_plot(Par,Aout(:,k),stab,order);
+           stab_plot(Par,Aout(:,k),stab,order,'blue');
            if SNHB
                 SNfig = plot(Par(SNidx),Aout(SNidx,k),thm.SN{:});
                 set(get(get(SNfig,'Annotation'),'LegendInformation'),...

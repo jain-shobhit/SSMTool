@@ -41,21 +41,27 @@ assert(~isreal(lambda),'The eigenvalues associated to the modal subspace must be
 omega0 = abs(imag(lambda));
 assert(prod([omega0-omegaRange(1),omega0-omegaRange(end)])<0,'The supplied omegaRange must contain the natural frequency associated to the modes')
 
-%% compute autonomous SSM coefficients
-[W0,R0] = obj.compute_whisker(order);
-gamma = compute_gamma(R0);
+%% loop over orders
+norders = numel(order);
+for k=1:norders
+    %% compute autonomous SSM coefficients
+    [W0,R0] = obj.compute_whisker(order(k));
+    gamma = compute_gamma(R0);
 
-%% compute backbone
-rho = compute_rho_grid(omegaRange,nOmega,rhoScale,gamma,lambda,nRho);
-[~,b] = frc_ab(rho, 0, gamma, lambda);
-omega = b./rho;
+    %% compute backbone
+    rho = compute_rho_grid(omegaRange,nOmega,rhoScale,gamma,lambda,nRho);
+    [~,b] = frc_ab(rho, 0, gamma, lambda);
+    omega = b./rho;
+    idx = [find(omega<omegaRange(1)) find(omega>omegaRange(2))];
+    rho(idx) = []; omega(idx) = [];
 
-%% Backbone curves in Physical Coordinates
-stability = true(size(rho)); psi = zeros(size(rho)); epsilon = 0;
-BB = compute_output_polar2D(rho,psi,stability,epsilon,omega,W0,[],1,nt, saveIC, outdof);
+    %% Backbone curves in Physical Coordinates
+    stability = true(size(rho)); psi = zeros(size(rho)); epsilon = 0;
+    BB = compute_output_polar2D(rho,psi,stability,epsilon,omega,W0,[],1,nt, saveIC, outdof);
 
-%% plotting
-plot_FRC_full(BB,outdof,order,'freq','lines',figs,colors(1,:));
+    %% plotting
+    plot_FRC(BB,outdof,order(k),'freq','lines',figs,colors(k,:));
+end
 totalComputationTime = toc(startBB);
 disp(['Total time spent on backbone curve computation = ' datestr(datenum(0,0,0,0,0,totalComputationTime),'HH:MM:SS')])
 end

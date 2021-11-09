@@ -272,9 +272,9 @@ for i=1:ndof
         Aout = FRCom{k}.Aout_frc(:,i);
         stab = FRCom{k}.st;
         if any(legDisp==k)
-            stab_plot(om,Aout,stab,order);
+            stab_plot(om,Aout,stab,order,'blue');
         else
-            stab_plot(om,Aout,stab,order,'nolegends');
+            stab_plot(om,Aout,stab,order,'blue','nolegends');
         end
         % plot special points
         SNidx = FRCom{k}.SNidx;

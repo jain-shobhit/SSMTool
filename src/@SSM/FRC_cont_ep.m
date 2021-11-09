@@ -94,7 +94,11 @@ funcs  = {odefun};
 prob = coco_prob();
 prob = cocoSet(obj.contOptions, prob);
 if isempty(p0)
-    p0 = [obj.System.Omega; obj.System.fext.epsilon];
+    if ~isempty(obj.System.fext)
+        p0 = [obj.System.Omega; obj.System.fext.epsilon];
+    else
+        p0 = [obj.System.Omega; obj.System.Fext.epsilon];
+    end
 end
 if isempty(z0)
     if ispolar
