@@ -67,7 +67,7 @@ classdef cocoWrapper < matlab.mixin.SetGet
         
         % extract backbone curve for mode whose natural frequency is
         % closest to omega among all natural frequencies
-        bd = extract_backbone(obj, omega) 
+        bd = extract_backbone(obj, omega, varargin) 
         
         % extract Force Response Curve for given frequency range
         bd = extract_FRC(obj, omega_range, varargin)

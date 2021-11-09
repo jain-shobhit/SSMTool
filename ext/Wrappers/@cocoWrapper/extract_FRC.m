@@ -10,7 +10,11 @@ omega0 = omega_range(1);
 T0     = 2*pi/omega0*obj.periodsRatio;
 tf     = obj.nCycles*T0;
 outdof = obj.outdof;
-epsilon = obj.system.fext.epsilon;
+if isempty(obj.system.fext)
+    epsilon = obj.system.Fext.epsilon;
+else
+    epsilon = obj.system.fext.epsilon;
+end
 
 assert(numel(obj.system.Omega)==1, 'coco run assumes single freq component');
 assert(obj.system.order == 2, 'fnl avaliable only for second-order systems')
