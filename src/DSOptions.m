@@ -7,6 +7,7 @@ classdef DSOptions < matlab.mixin.SetGet
         outDOF = []; % output degree of freedom
         RayleighDamping  = true; % damping matrix of second-order system
         HarmonicForce = true; % external forcing
+        lambdaThreshold = 1e16; % Threshold for stiff eigenmodes (will be removed)
     end
     methods
         function set.notation(obj,notation)

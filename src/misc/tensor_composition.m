@@ -20,6 +20,7 @@ parfor j_p = 1:size(P,1)
     AB_p = tensor_product(A,B(p));
     AB = AB + AB_p;
 end
+AB = sptensor(AB);
 end
 
 function [AB] = tensor_product(A,B)
