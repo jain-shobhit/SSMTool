@@ -125,14 +125,14 @@ cdims = Xnt.cdims;
 % dense matrix 
 Z = double(Xnt) * V.';
 
-if nnz(Z) <= 1.0 * prod(siz) % SSMTool need sptensor
+% if nnz(Z) <= 1.0 * prod(siz) % SSMTool need sptensor
     % Final result is a *sparse* tensor
     Ynt = sptenmat(Z, rdims, cdims, siz);
     Y = sptensor(Ynt);
-else
-    % Final result is a *dense* tensor
-    Ynt = tenmat(Z, rdims, cdims, siz);
-    Y = tensor(Ynt);
-end
+% else
+%     % Final result is a *dense* tensor
+%     Ynt = tenmat(Z, rdims, cdims, siz);
+%     Y = tensor(Ynt);
+% end
 
 end
