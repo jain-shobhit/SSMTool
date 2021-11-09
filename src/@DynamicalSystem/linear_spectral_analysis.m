@@ -63,12 +63,16 @@ else
         % right eigenvectors
         [V, Dv] = eigs(obj.A,obj.B,E_max,'smallestabs');
         [Lambda_sorted,I] = sort(diag(Dv),'descend','ComparisonMethod','real');
+        % further sort if real parts are equal (very close)
+        [Lambda_sorted,II] = sort_close_real_different_imag(Lambda_sorted);
         LAMBDA = diag(Lambda_sorted);
-        V = V(:,I);
+        V = V(:,I(II));
         % rescale V w.r.t mass matrix
-        for j=1:numel(I)
-            vs = V(1:obj.n,j)'*obj.M*V(1:obj.n,j);
-            V(:,j) = V(:,j)/sqrt(abs(vs));
+        if ~isempty(obj.M)
+            for j=1:numel(I)
+                vs = V(1:obj.n,j)'*obj.M*V(1:obj.n,j);
+                V(:,j) = V(:,j)/sqrt(abs(vs));
+            end
         end
         
         % left eigenvectors
@@ -76,18 +80,27 @@ else
             W = conj(V);
         else
             [W, Dw] = eigs(obj.A',obj.B',E_max,'smallestabs');
-            [~,I] = sort(diag(Dw),'descend','ComparisonMethod','real');
-            W = W(:,I);
+            [Lambda_sorted,I] = sort(diag(Dw),'descend','ComparisonMethod','real');
+            % further sort if real parts are equal (very close)
+            [Lambda_sorted,II] = sort_close_real_different_imag(Lambda_sorted);
+            % make sure reordered Dw is consistent with reordered Dv
+            assert(norm(Lambda_sorted-diag(LAMBDA))<1e-3*norm(diag(LAMBDA)),...
+                'Orders for W and V are not consistent');
+            W = W(:,I(II));
             W = conj(W);
         end
-    end
-    
+    end    
 end
 
-[V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W);
+[V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W,obj.Options.lambdaThreshold);
+[V,LAMBDA,W] = remove_zero_modes(V,LAMBDA,W);
 [V, D, W] = sort_modes(V, LAMBDA, W);
 [V,W] =  normalize_modes(V,W,obj.B);
-
+% check the orthonoramlity of V and W with respect to B
+numColV = size(V,2);
+if norm(W'*obj.B*V-eye(numColV),'fro')/numColV>1e-4
+    warning('V and W are not orthonormal');
+end
 obj.spectrum.V = V;
 obj.spectrum.W = W;
 obj.spectrum.Lambda = D;
@@ -163,14 +176,60 @@ mu = diag(W'*B*V);
 W = W*diag(1./(mu'));
 end
 
-function [V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W)
+function [V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W,lambdaThreshold)
 %REMOVE_STIFF_MODES: This function removes modes with infinite eigenvalues
 D = diag(LAMBDA);
 D = abs(D);
 n = numel(D);
-idx1 = find(D==inf);
+idx0 = [find(isinf(D));find(isnan(D))]; % indices with inf and nan eigenvalues
+D(idx0) = lambdaThreshold-1;
+idx1 = find(D>lambdaThreshold);
+idx2 = setdiff(1:n, [idx0;idx1]);
+V = V(:,idx2);
+W = W(:,idx2);
+LAMBDA = LAMBDA(idx2,idx2);
+if ~isempty(idx0)
+    fprintf('%i nan/inf eigenvalues are removed\n',numel(idx0));
+end
+if ~isempty(idx1)
+    fprintf('%i eigenvalues with mangnitude larger than %d are removed\n',...
+        numel(idx1), lambdaThreshold);
+end
+end
+
+function [V,LAMBDA,W] = remove_zero_modes(V,LAMBDA,W)
+%REMOVE_STIFF_MODES: This function removes modes with zero eigenvalues
+D = diag(LAMBDA);
+D = abs(D);
+n = numel(D);
+idx1 = find(D<eps*max(D)); % indices with zero eigenvalues
 idx2 = setdiff(1:n, idx1);
 V = V(:,idx2);
 W = W(:,idx2);
 LAMBDA = LAMBDA(idx2,idx2);
+if ~isempty(idx1)
+    fprintf('%i zero eigenvalues are removed\n',numel(idx1));
+end
+end
+
+function [y,idx] = sort_close_real_different_imag(x)
+realx = real(x);
+imagx = imag(x);
+n = numel(realx);
+
+drealx = realx(2:end)-realx(1:end-1);
+drealx = drealx./(realx(1:end-1)+eps);
+idgap  = find(abs(drealx)>1e-6);
+idgap  = [1; idgap(:); n];
+idx    = [];
+for k=1:numel(idgap)-1
+   ida = idgap(k);
+   if k>1; ida=ida+1; end
+   idb = idgap(k+1);
+   tmp = ida:idb;
+   [~,idab] = sort(imagx(tmp),'descend');
+   idx = [idx tmp(idab)];
+end
+y = x(idx);
+
 end
