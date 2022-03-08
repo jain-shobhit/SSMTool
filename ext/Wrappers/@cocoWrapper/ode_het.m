@@ -28,7 +28,7 @@ else
         expind = find(ind);
         s = 1;
         for j=1:numel(expind)
-            s = s.*x(expind(j),:).^ind(expind(j));
+            s = s.*z(expind(j),:).^ind(expind(j));
         end
         s = repmat(s, [n, 1]);
         y2 = y2+coeff.*s;
@@ -37,7 +37,11 @@ else
     % external forcing
     assert(~isempty(obj.system.fext), 'no external forcing');
     fext_coeffs = repmat(obj.system.fext.coeffs(:,1), [1, nt]);
-    fext_harm   = repmat(ep.*cos(obj.system.fext.kappas(1)*om.*t), [n, 1]);
+    if data.isbaseForce
+        fext_harm = repmat(ep.*om.^2.*cos(obj.system.fext.kappas(1)*om.*t), [n, 1]);
+    else
+        fext_harm = repmat(ep.*cos(obj.system.fext.kappas(1)*om.*t), [n, 1]);
+    end
     y3 = 2*fext_coeffs.*fext_harm;
     
     y = y1 + [zeros(n,nt); obj.system.M\(-y2+y3)];

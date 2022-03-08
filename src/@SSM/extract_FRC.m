@@ -83,6 +83,11 @@ for j = 1:numel(ORDER)
                 % call continuation based method
                 mFreqs = mFreqs(1:2:end)';
                 runid  = ['freqSubint',num2str(i)];
+                if j>1 % take lowest order solution as initial guess
+                    sol_jminus1 = ep_read_solution('', [runid,'.ep'], 1);
+                    obj.FRCOptions.p0 = sol_jminus1.p;
+                    obj.FRCOptions.z0 = sol_jminus1.x;
+                end                
                 FRC{i}   = obj.FRC_cont_ep(runid,resModes,order,mFreqs,parName,parSubRange);
                 plotStyle = 'lines';
             case 'continuation po'

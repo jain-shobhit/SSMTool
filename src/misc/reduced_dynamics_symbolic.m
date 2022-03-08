@@ -16,8 +16,8 @@ function y = reduced_dynamics_symbolic(lamdMaster,R0,options,varargin)
 sympref('FloatingPointOutput',false);
 lamdRe = real(lamdMaster);
 lamdIm = imag(lamdMaster);
-lamdRe = lamdRe(1:2:end-1);
-lamdIm = lamdIm(1:2:end-1);
+lamdRe = lamdRe(1:2:end);
+lamdIm = lamdIm(1:2:end);
 order  = numel(R0);
 m      = numel(lamdRe);
 beta   = cell(m,1); % coefficients - each cell corresponds to one mode

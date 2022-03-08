@@ -1,5 +1,5 @@
 # YetAnotherFEcode
-[![DOI](https://zenodo.org/badge/292112576.svg)](https://zenodo.org/badge/latestdoi/292112576)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4011281.svg)](https://doi.org/10.5281/zenodo.4011281)
 
 A simple MATLAB-based code for implementing the Finite Element method in an object oriented fashion.
 
@@ -26,6 +26,7 @@ To use the code, simply add the main folder and its contents to the MATLAB path.
 Further usage and development instructions to follow.  
 
 To showcase the relevance, please cite the following reference if you use this package in your work
-Shobhit Jain, Jacopo Marconi, & Paolo Tiso. (2020). YetAnotherFEcode (Version v1.1). Zenodo. http://doi.org/10.5281/zenodo.4011282
+
+Shobhit Jain, Jacopo Marconi & Paolo Tiso (2020). YetAnotherFEcode. Zenodo. http://doi.org/10.5281/zenodo.4011281
 
 Please report any issues/bugs to Shobhit Jain <shjain@ethz.ch>

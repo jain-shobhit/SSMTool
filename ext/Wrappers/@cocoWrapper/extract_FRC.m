@@ -18,20 +18,15 @@ end
 
 assert(numel(obj.system.Omega)==1, 'coco run assumes single freq component');
 assert(obj.system.order == 2, 'fnl avaliable only for second-order systems')
-for i=1:numel(obj.system.fnl)
-    fnli = obj.system.fnl{i};
-    if ~isempty(fnli)
-        assert(size(fnli,2)==n, 'current implementation assumes f(x) instead of f(x,xd)');
-    end
-end
 
+obj.fnlTensor2Multi();
+odedata.fnl = obj.multiFnl;
+odedata.isbaseForce = obj.system.Options.BaseExcitation;
 switch obj.initialGuess
     case 'forward'
         %% initial solution by forward simulation
         % ode45 is used here. Integration option may be added in future
         x0_init = zeros(N,1);
-        obj.fnlTensor2Multi();
-        odedata.fnl = obj.multiFnl;
         odefun = @(t,x) obj.ode_het(t,x,[omega0;epsilon],odedata);
         [~, x0_po] = ode15s(odefun , [0 tf], x0_init);                % transient
         options = odeset('RelTol', 1e-9, 'AbsTol',1e-9);
@@ -60,8 +55,6 @@ prob = coco_prob();
 prob = cocoSet(obj, prob);
 prob = coco_set(prob, 'ode', 'autonomous', false);
 prob = coco_set(prob, 'ode', 'vectorized', true);
-obj.fnlTensor2Multi();
-odedata.fnl = obj.multiFnl;
 odefun = @(t,x,p) obj.ode_het(t,x,p,odedata);
 funcs = {odefun};
 

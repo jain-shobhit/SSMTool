@@ -70,6 +70,9 @@ for j = 1:numel(om)
         end
     end
     % Forced response in Physical Coordinates
+    if obj.System.Options.BaseExcitation
+        epsf(j) = epsf(j)*(om(j))^2;
+    end    
     %% ep toolbox
     if isep
         state = FRC.z(j,:);

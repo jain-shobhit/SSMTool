@@ -57,6 +57,7 @@ for i=1:numel(iNonauto)
     id = iNonauto(i);
     r  = rNonauto(i);
     r  = epsf*r;
+    if data.isbaseForce; r = r.*om.^2; end
     rRe = real(r);
     rIm = imag(r);
     yRe(id,:) = yRe(id,:)+rRe;

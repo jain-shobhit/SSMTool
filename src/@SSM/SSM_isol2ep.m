@@ -76,6 +76,7 @@ Nonauto.iNonauto = iNonauto; Nonauto.rNonauto = rNonauto; Nonauto.kNonauto = kNo
 
 ispolar = strcmp(obj.FRCOptions.coordinates, 'polar');
 fdata.ispolar = ispolar;
+fdata.isbaseForce = obj.System.Options.BaseExcitation;
 if ispolar
     odefun = @(z,p) ode_2mDSSM_polar(z,p,fdata);
 else

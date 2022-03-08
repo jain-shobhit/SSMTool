@@ -7,7 +7,7 @@ classdef cocoOptions < matlab.mixin.SetGet
         % settings for continuation
         NPR = 10          % frequency of screen outputs
         NSV = 10          % frequency of storing solutions to disk
-        NAdapt = 10       % adaptation period, 0 ==  off
+        NAdapt = 0        % adaptation period, 0 ==  off
         h0 = 0.1          % initial step size
         h_max = 0.5       % max step size
         h_min = 0.01      % min step size

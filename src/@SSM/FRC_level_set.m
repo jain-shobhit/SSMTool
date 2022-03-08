@@ -65,6 +65,9 @@ for j = 1:nPar
             epsilon = par(j);
             obj.System.fext.epsilon = epsilon;
     end
+    if obj.System.Options.BaseExcitation
+        epsilon = epsilon*Omega^2;
+    end
     % compute non-autonomous SSM coefficients
     [W1, R1] = obj.compute_perturbed_whisker(order);
     

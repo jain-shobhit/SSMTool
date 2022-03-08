@@ -83,6 +83,7 @@ fdata.modes = resModes;
 
 ispolar = strcmp(coordinates, 'polar');
 fdata.ispolar = ispolar;
+fdata.isbaseForce = obj.System.Options.BaseExcitation;
 if ispolar
     odefun = @(z,p) ode_2mDSSM_polar(z,p,fdata);
 else
@@ -182,6 +183,9 @@ if obj.FRCOptions.nonAutoParRedCom
     for j=1:numel(om)
         % Forced response in Physical Coordinates
         statej = state(j,:);
+        if obj.System.Options.BaseExcitation
+            epsf(j) = epsf(j)*(om(j))^2;
+        end        
         [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W1{j}, statej, epsf(j), nt, mFreqs, outdof);
 
         % collect output in array
@@ -215,6 +219,9 @@ else
             W_1j = W_1;
         end
         % Forced response in Physical Coordinates
+        if obj.System.Options.BaseExcitation
+            epsf(j) = epsf(j)*(om(j))^2;
+        end        
         statej = state(j,:);
         [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W_1j, statej, epsf(j), nt, mFreqs, outdof);
 

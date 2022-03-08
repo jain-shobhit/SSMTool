@@ -9,6 +9,9 @@ if isempty(obj.fext)
 else
     if obj.Options.HarmonicForce
         fext = obj.fext.epsilon * real(obj.fext.coeffs * exp(1i * obj.fext.kappas * obj.Omega * t));
+        if obj.Options.BaseExcitation
+            fext = fext*(obj.Omega)^2; 
+        end
     else
         fext = obj.fext(t);
     end    

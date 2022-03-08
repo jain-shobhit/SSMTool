@@ -1,19 +1,18 @@
 %% 
 % We extract FRC of a three DOFs model with 1:1:1 internal resonance
 % 
-% $$\ddot{x}_1+x_1+\epsilon c_1\dot{x}_1+ K(x-y)^3=\epsilon f_1\cos\Omega t,\\\ddot{x}_2+x_2+\epsilon 
-% c_2\dot{x}_2+ K[(y-x)^3+(y-z)^3]=\epsilon f_2\cos\Omega t,\\\ddot{x}_3+x_3+\epsilon 
-% c_3\dot{x}_3+ K(z-y)^3=\epsilon f_3\cos\Omega t.$$
+% $$\ddot{x}_1+x_1+c_1\dot{x}_1+ K(x_1-x_2)^3=\epsilon f_1\cos\Omega t,\\\ddot{x}_2+x_2+c_2\dot{x}_2+ 
+% K[(x_2-x_1)^3+(x_2-x_3)^3]=0,\\\ddot{x}_3+x_3+c_3\dot{x}_3+ K(x_3-x_2)^3=0.$$
 
 clear all, close all, clc
 %% Example Setup
 
-c1 = 1e-1;
-c2 = 2e-1;
-c3 = 3e-1;
-K = 0.2; 
 epsilon = 5e-3;
-[mass,damp,stiff,fnl,fext]=build_model(c1,c2,c3,K,epsilon);
+c1 = 5e-4;
+c2 = 1e-3;
+c3 = 1.5e-3;
+K = 1e-3; 
+[mass,damp,stiff,fnl,fext]=build_model(c1,c2,c3,K);
 %% Dynamical System Setup
 
 DS = DynamicalSystem();

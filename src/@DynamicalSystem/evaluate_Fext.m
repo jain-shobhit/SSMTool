@@ -7,7 +7,14 @@ switch obj.order
         if isempty(obj.Fext)
             Fext = sparse(obj.N,1);
         else
-            Fext = obj.Fext.epsilon * real(obj.Fext.coeffs * exp(1i * obj.Fext.kappas * obj.Omega * t));
+            if obj.Options.HarmonicForce
+                Fext = obj.Fext.epsilon * real(obj.Fext.coeffs * exp(1i * obj.Fext.kappas * obj.Omega * t));
+                if obj.Options.BaseExcitation
+                    Fext = Fext*(obj.Omega)^2;
+                end
+            else
+                Fext = obj.Fext(t);
+            end
         end
         
     case 2
