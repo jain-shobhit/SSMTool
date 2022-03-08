@@ -15,7 +15,13 @@ The theoretical and computational aspects for analyzing systems with internal re
 
 In this version, we demonstrate the computational methodology over the following small academic examples as well high-dimensional finite element problems using the FE package [4]
 
+First-order examples: 
+- BenchmarkSSM1stOrder: computation of 1D stable SSM of a two-dimensional system
+- Lorenz1stOrder: computation of 1D unstable SSM of the Lorenz system
+- CharneyDeVore1stOrder: computation of 1D/2D unstable SSMs of a six-dimensional system
 - Complex Dyn: example of 4D first-order dynamical system with complex coefficients benchmarked against SSMTool 1.0.
+
+Second-order examples:
 - Oscillator chain: two coupled oscillators with 1:2 internal resonance, three coupled oscillators with 1:1:1 internal resonance and n coupled oscillators without any internal resonances.
 - Bernoulli beam: modeled using linear finite elements with localized nonlinearity in the form of a cubic spring with and without 1:3 **internal resonances** (IR) and demonstration of bifurcation to quasiperiodic response on a 3D torus.
 - von Karman straight beam in 2D: geometrically nonlinear finite element model with and without internal resonance (1:3) and demonstration of bifurcation to quasiperiodic response on a 2D torus.
