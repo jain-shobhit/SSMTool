@@ -26,9 +26,13 @@ Second-order examples:
 - Bernoulli beam: modeled using linear finite elements with localized nonlinearity in the form of a cubic spring with and without 1:3 **internal resonances** (IR) and demonstration of bifurcation to quasiperiodic response on a 3D torus.
 - von Karman straight beam in 2D: geometrically nonlinear finite element model with and without internal resonance (1:3) and demonstration of bifurcation to quasiperiodic response on a 2D torus.
 - von Karman plate in 3D: geometrically nonlinear finite element model of a square flat plate with demonstration of **parallel computing**, 1:1 internal resonance and bifurcation to quasiperiodic response on a 2D torus.
-- von Karman shell-based shallow curved panel in 3D: geometrically nonlinear finite element model.
+- von Karman shell-based shallow curved panel in 3D: geometrically nonlinear finite element model with and without 1:2 internal resonance.
 - Prismatic beam: nonlinear beam PDE discretized using Galerkin method onto a given number of modes, comparison with the method of multiple scales, demonstration of 1:3 internal internal resonance
+- AxialMovingBeam: an axially moving beam with gyroscopic and nonlinear damping forces
+- TimoshenkoBeam: a cantilever Timoshenko beam carrying a lumped mass. This example demonstrates the effectiveness of SSM reduction for systems undergoing large deformations.
 - NACA airfoil based aircraft wing model: shell-based nonlinear finite element model containing more than 100,000 degrees of freedom.
+
+
 
 This package uses the following external open-source packages:
 
