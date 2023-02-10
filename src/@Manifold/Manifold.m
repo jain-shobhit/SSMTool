@@ -61,6 +61,10 @@ classdef Manifold < matlab.mixin.SetGetExactNames
         [W, f] = compute_perturbed_whisker(obj, order)            
            
         [rho] = compute_analyticity_domain(obj,appr_order) %compute analyticity domain at approximation order appr_order.
+        
+        err = compute_auto_invariance_error(obj,W,R,rhosamp,orders,ntheta,varargin);
+        
+        res = compuate_invariance_residual(obj,W0,R0,p,type,varargin)
     end
 end
 

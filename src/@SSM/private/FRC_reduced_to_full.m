@@ -38,7 +38,11 @@ else
     nlab = numel(FRC.lab);
     zTr  = cell(nlab,1);
     nSeg = FRC.nSeg;
-    noutdof = numel(outdof);
+    if isnumeric(outdof)
+        noutdof = numel(outdof);
+    elseif isa(outdof, 'function_handle') % function handle for observables
+        noutdof = numel(outdof(zeros(size(W_0{1}.coeffs ,1),1)));
+    end
 end
 
 % Loop around a resonant mode

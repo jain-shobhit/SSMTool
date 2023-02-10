@@ -48,6 +48,7 @@ switch obj.Options.notation
         m = length(Lambda_M); % dim(M): M is the master modal subspace
         N_i = N*m^i; % number of unknown SSM coefficients in the tensor notation at order i
         ref = min(abs(Lambda_M));
+        if ref<1e-10; ref = max(abs(Lambda_M)); end
         abstol = obj.Options.reltol * ref;
                 
         %% Assemble the coefficient matrix of SSM

@@ -61,7 +61,10 @@ else
     
     else
         % right eigenvectors
-        [V, Dv] = eigs(obj.A,obj.B,E_max,'smallestabs');
+        [V, Dv] = eigs(obj.A,obj.B,E_max,obj.Options.sigma);
+        if obj.Options.RemoveZeros
+            [V,Dv] = remove_zero_modes(V,Dv);
+        end
         [Lambda_sorted,I] = sort(diag(Dv),'descend','ComparisonMethod','real');
         % further sort if real parts are equal (very close)
         [Lambda_sorted,II] = sort_close_real_different_imag(Lambda_sorted);
@@ -79,21 +82,31 @@ else
         if issymmetric(obj.A) && issymmetric(obj.B)
             W = conj(V);
         else
-            [W, Dw] = eigs(obj.A',obj.B',E_max,'smallestabs');
+            [W, Dw] = eigs(obj.A',obj.B',E_max,obj.Options.sigma);
+            if obj.Options.RemoveZeros
+                [W,Dw] = remove_zero_modes(W,Dw);
+            end
             [Lambda_sorted,I] = sort(diag(Dw),'descend','ComparisonMethod','real');
             % further sort if real parts are equal (very close)
             [Lambda_sorted,II] = sort_close_real_different_imag(Lambda_sorted);
             % make sure reordered Dw is consistent with reordered Dv
-            assert(norm(Lambda_sorted-diag(LAMBDA))<1e-3*norm(diag(LAMBDA)),...
+            lambda_left = diag(LAMBDA);
+            neigs  = min(numel(Lambda_sorted),numel(lambda_left));
+            idxcom = 1:neigs;
+            assert(norm(Lambda_sorted(idxcom)-lambda_left(idxcom))<1e-3*norm(lambda_left(idxcom)),...
                 'Orders for W and V are not consistent');
-            W = W(:,I(II));
+            W = W(:,I(II(idxcom)));
             W = conj(W);
+            V = V(:,idxcom);
+            LAMBDA = LAMBDA(idxcom,idxcom);
         end
     end    
 end
 
 [V,LAMBDA,W] = remove_stiff_modes(V,LAMBDA,W,obj.Options.lambdaThreshold);
-[V,LAMBDA,W] = remove_zero_modes(V,LAMBDA,W);
+if obj.Options.RemoveZeros
+    [V,LAMBDA,W] = remove_zero_modes(V,LAMBDA,W);
+end
 [V, D, W] = sort_modes(V, LAMBDA, W);
 [V,W] =  normalize_modes(V,W,obj.B);
 % check the orthonoramlity of V and W with respect to B
@@ -105,7 +118,11 @@ obj.spectrum.V = V;
 obj.spectrum.W = W;
 obj.spectrum.Lambda = D;
 
-fprintf('\n The first %d eigenvalues are given as \n',length(D))
+if obj.Options.RemoveZeros
+    fprintf('\n The first %d nonzero eigenvalues are given as \n',length(D))
+else
+    fprintf('\n The first %d eigenvalues are given as \n',length(D))
+end
 disp(D)
 
 end
@@ -137,6 +154,7 @@ for j = 1:length(Lambda)
         skip = false;
         continue;
     end    
+    if j+1<=length(Lambda) % make sure Lambda(j+1) exists 
     if ~isreal(Lambda(j))&& abs(Lambda(j)-conj(Lambda(j+1)))<1e-8*abs(Lambda(j))
         % extract complex eigenpair
         V0 = V(:,j:j+1);
@@ -148,16 +166,9 @@ for j = 1:length(Lambda)
         Lambda([j,j+1]) = Lambda0(I);
         V(:,[j,j+1]) = V0(:,I);
         W(:,[j,j+1]) = W0(:,I);
-%         Lambda(j) = Lambda0(I(1));
-%         V(:,j) = V0(:,I(1));
-%         W(:,j) = W0(:,I(1));
-        % ensure complex conjugate eigenvalues and eigenvectors - not true
-        % if A and B are not real
-%         Lambda(j+1) = conj(Lambda(j));                
-%         V(:,j+1) = conj(V(:,j));
-%         W(:,j+1) = conj(W(:,j));
         % move to the next pair of eigenvalues
         skip = true; 
+    end
     end
 end
 % D = diag(Lambda);
@@ -197,17 +208,20 @@ if ~isempty(idx1)
 end
 end
 
-function [V,LAMBDA,W] = remove_zero_modes(V,LAMBDA,W)
+function [V,LAMBDA,varargout] = remove_zero_modes(V,LAMBDA,varargin)
 %REMOVE_STIFF_MODES: This function removes modes with zero eigenvalues
 D = diag(LAMBDA);
 D = abs(D);
 n = numel(D);
-idx1 = find(D<eps*max(D)); % indices with zero eigenvalues
+idx1 = find(D<1e-6*max(D)); % indices with zero eigenvalues
 idx2 = setdiff(1:n, idx1);
 V = V(:,idx2);
-W = W(:,idx2);
+if ~isempty(varargin)
+    W = varargin{1};
+    varargout{1} = W(:,idx2); 
+end
 LAMBDA = LAMBDA(idx2,idx2);
-if ~isempty(idx1)
+if ~isempty(idx1) && ~isempty(varargin)
     fprintf('%i zero eigenvalues are removed\n',numel(idx1));
 end
 end

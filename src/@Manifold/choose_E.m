@@ -36,6 +36,7 @@ m = length(lambda_M);
 % Zero tolerance for detecting near resonances
 
 ref = min(abs(lambda_M));
+if ref<1e-10; ref = max(abs(lambda_M)); end
 abstol = reltol*ref;
 %% 
 % Maximum order upto which resonance would be checked

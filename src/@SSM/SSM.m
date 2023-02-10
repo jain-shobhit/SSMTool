@@ -12,7 +12,7 @@ classdef SSM < Manifold
            
         FRC = extract_FRC(obj, parName, parRange, order)               
         
-        BB = extract_backbone(obj,modes,order,outdof)
+        BB = extract_backbone(obj,modes,order,outdof,varargin)
         
         varargout = FRC_cont_ep(obj,oid,modes,order,mFreq,parName,parRange,outdof,varargin);
         
@@ -32,6 +32,7 @@ classdef SSM < Manifold
         SSM_po2TR(obj,oid,run,lab,parRange,outdof,varargin);
         SSM_po2SN(obj,oid,run,lab,parRange,outdof,varargin);
         SSM_po2PD(obj,oid,run,lab,parRange,outdof,varargin);
+        SSM_po2Tinf(obj,oid,run,lab,parRange,outdof,varargin);
         % SSM-tor toolbox
         SSM_TR2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);
         SSM_tor2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);
