@@ -9,10 +9,15 @@ nt = size(z,2);
 Znorm = norm(z,'fro')/sqrt(nt-1);
 
 if ~isempty(outdof)
-    Zout = z(outdof,:);    
-    noutdof = numel(outdof);
+    if isnumeric(outdof)
+        Zout = z(outdof,:);    
+        noutdof = numel(outdof);
+    else
+        Zout = outdof(z);
+        noutdof = size(Zout,1);
+    end
     Aout = zeros(1, noutdof);
-    for k=1:numel(outdof)
+    for k=1:noutdof
         Aout(k) = norm(Zout(k,:),'inf');
     end
 else

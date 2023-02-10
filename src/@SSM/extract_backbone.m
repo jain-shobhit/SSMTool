@@ -1,4 +1,4 @@
-function BB = extract_backbone(obj, modes, omegaRange, order)
+function BB = extract_backbone(obj, modes, omegaRange, order, varargin)
 %  EXTRACT_BACKBONE This function extracts the *Backbone curves in Polar coordinates.* For two-dimensional
 % SSMs, we use the normal form of paramaterization, where we choose the following
 % form of autonomous reduced dynamics as
@@ -17,9 +17,16 @@ function BB = extract_backbone(obj, modes, omegaRange, order)
 % $$b(\rho)=\sum_{j=1}^{M}\Im(\gamma_{j})\rho^{2j+1}+\rho\Im(\lambda).$$
 %
 % It follows that the _backbone curves_ in polar coordinates is given by $\Omega=\frac{b(\rho)}{\rho}$.
+%
+% The range of rho is determined by quadratic approximation of backbone
+% curve if varargin is empty. Otherwise, it is specified via varargin
 
 f1 = figure('Name','Norm');
-f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+if isnumeric(obj.FRCOptions.outdof)
+    f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+else
+    f2 = figure('Name','Amplitude at DOFs');
+end
 figs = [f1, f2];
 colors = get(0,'defaultaxescolororder');
 
@@ -49,7 +56,12 @@ for k=1:norders
     gamma = compute_gamma(R0);
 
     %% compute backbone
-    rho = compute_rho_grid(omegaRange,nOmega,rhoScale,gamma,lambda,nRho);
+    if numel(varargin)==0
+        rho = compute_rho_grid(omegaRange,nOmega,rhoScale,gamma,lambda,nRho);
+    else
+        rhomax = varargin{1};
+        rho = linspace(0.001*rhomax,rhomax,nRho);
+    end
     [~,b] = frc_ab(rho, 0, gamma, lambda);
     omega = b./rho;
     idx = [find(omega<omegaRange(1)) find(omega>omegaRange(2))];

@@ -6,7 +6,11 @@ function bds = extract_FRC(obj, omega_range, varargin)
 dir_name = obj.Options.dir_name;
 N = obj.system.N;
 n = obj.system.n;
-omega0 = omega_range(1); 
+if ~isempty(obj.system.Omega)
+    omega0 = obj.system.Omega;
+else
+    omega0 = omega_range(1); 
+end
 T0     = 2*pi/omega0*obj.periodsRatio;
 tf     = obj.nCycles*T0;
 outdof = obj.outdof;
@@ -70,10 +74,14 @@ prob = coco_add_func(prob, 'OmegaT', @OmegaT, @OmegaT_du, omData, 'zero',...
 % track amplitude of outdof
 ampdata.dof  = outdof;
 ampdata.zdim = N;
-numoutdof = numel(outdof);
+if isnumeric(outdof)
+    numoutdof = numel(outdof); Outdof = outdof;
+else
+    numoutdof = numel(outdof(zeros(N,1))); Outdof = 1:numoutdof;
+end
 ampNames = cell(1, numel(numoutdof));
-for k = 1:numel(outdof)
-   ampNames{k} = strcat('amp',num2str(outdof(k))); 
+for k = 1:numoutdof
+   ampNames{k} = strcat('amp',num2str(Outdof(k))); 
 end
 prob = coco_add_func(prob, 'amp', @amplitude, ampdata, 'regular', ampNames,...
     'uidx', uidx(maps.xbp_idx), 'remesh', @amplitude_remesh);
@@ -214,7 +222,11 @@ end
 function [data, y] = amplitude(prob, data, u) %#ok<INUSL>
 
 xbp = reshape(u, data.zdim, []);
-y = xbp(data.dof,:);
+if isnumeric(data.dof)
+    y = xbp(data.dof,:);
+else
+    y = data.dof(xbp);
+end
 y = max(abs(y),[],2);
 
 end

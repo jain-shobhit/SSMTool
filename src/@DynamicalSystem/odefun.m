@@ -4,7 +4,7 @@ function f = odefun(obj,t,z)
 
 switch obj.order
     case 1
-        f = obj.B\(obj.A * z + obj.evaluate_Fnl(z) + obj.Fext(t));
+        f = obj.B\(obj.A * z + obj.evaluate_Fnl(z) + obj.evaluate_Fext(t));
     case 2
         x = z(1:obj.n);
         xd = z(obj.n+1:obj.N);

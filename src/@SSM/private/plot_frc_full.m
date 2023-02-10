@@ -9,6 +9,8 @@ switch ParName
         error('The ParName should be amp/freq');
 end
 
+if isa(outdof,'function_handle');outdof = 1:size(Aout,2);end
+
 if numel(varargin)>0 && strcmp(varargin{1},'lines')
     % plot by solid and dashed lines (solid/dashed: stable/unstable)    
     if numel(varargin)>1 && ischar(varargin{2})

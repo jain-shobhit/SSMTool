@@ -27,7 +27,11 @@ function FRC = extract_FRC(obj, parName, parRange, ORDER)
 % parRange: continuation domain of parameter
 % order:    order of SSM expansion to be used for FRC computation
 f1 = figure('Name','Norm');
-f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+if isnumeric(obj.FRCOptions.outdof)
+    f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+else
+    f2 = figure('Name','Amplitude at DOFs');
+end
 figs = [f1, f2];
 colors = get(0,'defaultaxescolororder');
 totalComputationTime = zeros(size(ORDER));

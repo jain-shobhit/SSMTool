@@ -77,6 +77,7 @@ Nonauto.iNonauto = iNonauto; Nonauto.rNonauto = rNonauto; Nonauto.kNonauto = kNo
 
 ispolar = strcmp(obj.FRCOptions.coordinates, 'polar');
 fdata.ispolar = ispolar;
+fdata.isbaseForce = obj.System.Options.BaseExcitation;
 if ispolar
     odefun = @(z,p) ode_2mDSSM_polar(z,p,fdata);
 else
@@ -152,8 +153,10 @@ for k=1:numLabs
     runidk = coco_get_id(runidk, 'ep');
     FRC = ep_reduced_results(runidk,obj.FRCOptions.sampStyle,ispolar,true,args1,args2,'plot-off');
     %% results in physical domain
+    if ~isempty(outdof)
     fprintf('Calculate FRC in physical domain at epsilon %d\n', ep(Labs(k)));
     FRC = FRC_reduced_to_full(obj,Nonauto,'ep',FRC,FRCdata,W_0,W_1,outdof,varargin{:});
+    end
     FRCom{k} = FRC;
 end
 
@@ -262,7 +265,7 @@ else
         legDisp = [legDisp,idallunstab(1)];
     end
 end
-
+if ~isempty(outdof)
 ndof = numel(outdof);
 for i=1:ndof
     % 2D plot
@@ -322,7 +325,7 @@ for i=1:ndof
     grid on, axis tight; legend boxoff;
     view([-1,-1,1]);
 end
-
+end
 end
 
 

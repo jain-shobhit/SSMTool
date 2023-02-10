@@ -28,7 +28,7 @@ end
 Aout  = [FRC.Aout];
 stab  = [FRC.stability];
 Znorm = [FRC.Znorm];
-
+if isa(outdof,'function_handle');outdof = 1:round(numel(Aout)/numel(stab));end
 numOutdof = numel(outdof);
 numPts    = numel(stab);
 Aout = reshape(Aout, [numOutdof, numPts]);

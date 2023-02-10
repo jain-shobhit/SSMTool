@@ -1,4 +1,4 @@
-function [ u_lin, u ] = static_equilibrium( Assembly, uInit, Fext, varargin )
+function [ u_lin, U ] = static_equilibrium( Assembly, uInit, Fext, varargin )
 % finds the equilibrium configuration of the model subject to Fext load.
 %   Detailed explanation goes here
 
@@ -6,7 +6,7 @@ function [ u_lin, u ] = static_equilibrium( Assembly, uInit, Fext, varargin )
 u0 = zeros(Assembly.Mesh.nDOFs,1);
 [K,~] = Assembly.tangent_stiffness_and_force(u0);
 u_lin = Assembly.solve_system(K,Fext);
-
+n = size(u_lin,1);
 % initial displacement
 u0 = Assembly.constrain_vector(uInit);
 
@@ -15,10 +15,11 @@ switch method
     case 'fsolve'
         options = optimoptions('fsolve','SpecifyObjectiveGradient',true,'MaxIterations',maxIter);
         [ueq] = fsolve(@(u)f(u,Assembly,Fext),u0,options);
-        u = Assembly.unconstrain_vector(ueq);
+        U = Assembly.unconstrain_vector(ueq);
         
     case 'newton'
-        u = u_lin/nsteps;
+        U = zeros(n,nsteps);
+        u = uInit;
         figure; xlabel('Normalized load');ylabel('$$\|\mathbf{u}\|$$')
         h = animatedline;
         addpoints(h,0,0);
@@ -47,6 +48,7 @@ switch method
             end
             addpoints(h,j/nsteps,norm(u));
             drawnow 
+            U(:,j) = u;
         end
 end
 

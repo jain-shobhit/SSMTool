@@ -9,6 +9,8 @@ classdef DSOptions < matlab.mixin.SetGet
         HarmonicForce = true; % external forcing
         lambdaThreshold = 1e16; % Threshold for stiff eigenmodes (will be removed)
         BaseExcitation = false; % harmonic forcing in the form \epsilon\Omega^2 f^{ext}(\Omega t)
+        sigma  = 0; % used in eigenvalue computation in eigs (compute Emax eigenvalues around sigma, which is zero by default - smallestabs)
+        RemoveZeros = true; % remove zero eigenvalues in linear spectral analysis (false if parameter-dependent SSM/LSM is computed)
     end
     methods
         function set.notation(obj,notation)
