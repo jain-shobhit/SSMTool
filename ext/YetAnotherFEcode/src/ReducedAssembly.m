@@ -142,7 +142,7 @@ classdef ReducedAssembly < Assembly
             end
         end
         
-        function [T] = tensor(self,elementMethodName,SIZE,sumDIMS,varargin)
+        function [T] = tensor(self,elementMethodName,SIZE,sumDIMS,mode,varargin)
             % This function assembles a generic finite element vector from
             % its element level counterpart.
             % elementMethodName is a string input containing the name of
@@ -167,15 +167,20 @@ classdef ReducedAssembly < Assembly
             
             % Computing element level contributions
 
-            parfor j = elementSet
+            for j = elementSet
                 thisElement = Elements(j).Object;
                 index = thisElement.iDOFs;          
                 Ve = V(index,:); %#ok<*PFBNS>
-                [Te, ~] = thisElement.(elementMethodName)(inputs{:});                
-                % transform tensor
-                Vcell = cell(ndims(Te),1);
-                Vcell(:) = {Ve.'};
-                T = T + elementWeights(j) * ttm(Te, Vcell,I);
+                if strcmpi(mode,'ELP') % toggle Element-Level projection
+                    [Te, ~] = thisElement.(elementMethodName)([Ve,inputs{:}]);
+                    T = T + Te;
+                else
+                    [Te, ~] = thisElement.(elementMethodName)(inputs{:});
+                    % transform tensor
+                    Vcell = cell(ndims(Te),1);
+                    Vcell(:) = {Ve.'};
+                    T = T + elementWeights(j) * ttm(Te, Vcell,I);
+                end
             end
             
             [subs, T] = sparsify(T,[],sumDIMS);

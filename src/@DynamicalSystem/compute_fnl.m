@@ -6,15 +6,10 @@ assert(obj.order == 2, ' fnl can only be computed for second-order systems')
 
 fnl = zeros(obj.n,1);
 for j = 1:length(obj.fnl)
-    if ~isempty(obj.fnl{j})
-        sizej = size(obj.fnl{j});
-        if sizej(2)==obj.n
-            fnl = fnl + expand_tensor(obj.fnl{j},x); % only displacement dependent
-        else
-            tmp = expand_tensor(obj.fnl{j},[x;xd]); % both disp and velocity dependent
-            fnl = fnl+tmp(1:obj.n);
-        end
+    if size(obj.fnl(j).ind,2) == obj.N % check if the nonlinearity is velocity dependent as well
+        z = [x;xd];
+    else
+        z = x;
     end
-end
-
+    fnl = fnl + expand_multiindex(obj.fnl(j),z);
 end

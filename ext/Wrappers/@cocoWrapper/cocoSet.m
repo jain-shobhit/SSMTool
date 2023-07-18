@@ -20,6 +20,9 @@ if opts.h_max~=default.h_max
     prob = coco_set(prob, 'cont', 'h_max', opts.h_max);
 end
 if opts.h_min~=default.h_min
+    prob = coco_set(prob, 'cont', 'h_min', opts.h_min);
+end
+if opts.h_fac_max~=default.h_fac_max
     prob = coco_set(prob, 'cont', 'h_fac_max', opts.h_fac_max);
 end
 if opts.h_fac_min~=default.h_fac_min

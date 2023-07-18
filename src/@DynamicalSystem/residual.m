@@ -15,7 +15,7 @@ function [ r, drdqdd,drdqd,drdq, c0] = residual(obj, q, qd, qdd, t)
 assert(obj.order == 2, ' residual can only be computed for second-order systems')
 
 F_elastic = obj.K * q + obj.compute_fnl(q,qd);
-F_external =  obj.compute_fext(t);
+F_external =  obj.compute_fext(t,q);
 F_inertial = obj.M * qdd;
 F_damping = obj.C * qd;
 

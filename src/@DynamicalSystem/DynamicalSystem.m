@@ -30,11 +30,13 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         Fext = []
         Omega = []
         
+        
         n                   % dimension for x
         N                   % dimension for z
         order = 2;          % whether second-order or first-order system
         degree              % degree of (polynomial) nonlinearity of the rhs of the dynamical system
         nKappa              % Fourier Series expansion order for Fext
+        kappas =   []       % matrix with all kappas in its rows
         
         spectrum = []       % data structure constructed by linear_spectral_analysis method
         Options = DSOptions()
@@ -48,7 +50,18 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
             set(obj,'order',1); % since second-order system is assumed by default
         end        
 
-        
+        function set.fnl(obj,fnl)
+            % sets nonlinearity in second order form in multi-index format
+            if iscell(fnl)
+                % Input is sptensor
+                % sets nonlinearity in second order form in multi-index format
+                obj.fnl = set_fnl(fnl);
+            else
+                % Already in multi-index notation
+                obj.fnl = fnl;
+           end
+
+        end
         %% GET methods
         function A = get.A(obj)
             
@@ -83,52 +96,67 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         end
         
         function F = get.F(obj)
-                
+            
             switch obj.Options.notation
-
+                
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %   Computation in tensor format     %%
+                %   nonlinearitiy is input as tensor %%
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 case 'tensor'
-                    d = length(obj.fnl) + 1;
-                    F = cell(1,d);
-                    F{1} = sptensor(obj.A);
-
-                    for j = 2:d
-                        sizej = obj.N*ones(1,j+1);
-                        if isempty(obj.fnl{j-1})
-                            F{j} = sptensor(sizej);
-                        else                                
-                            subsj = obj.fnl{j-1}.subs;
-                            valsj = -obj.fnl{j-1}.vals;
-                            if obj.order==1
-                                valsj = -valsj;
-                            end
-                            F{j} = sptensor(subsj,valsj,sizej);
+                    
+                    if obj.order == 1
+                        
+                        if ~isempty(obj.F)
+                            F = obj.F;
+                        elseif ~isempty(obj.fnl)
+                            % In this case, the DS is input to be first order, but
+                            % the nonlinearity is given in second order format.
+                            % See for instance example BenchmarkSSM1stOrder
+                            
+                            F = fnl_to_Ftens(obj);                           
+                            
+                        else
+                            F = [];
                         end
-                    end
+                        
+                    else
+                        
+                        F = fnl_to_Ftens(obj);                           
 
+                    end
+                    
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %   Computation in multiindex format     %%
+                %   nonlinearitiy is input in multiindex %%
+                %   or converted to it from tensor       %%
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                    
                 case 'multiindex'
-                    d = length(obj.fnl) + 1;
-                    F = cell(1,d);
-                    F{1} = tensor_to_multi_index(sptensor(obj.A));
+                                
+                    if obj.order == 1
+                                                
+                        if ~isempty(obj.F)
+                            F = obj.F;
+                        elseif ~isempty(obj.fnl)                            
+                            % In this case, the DS is input to be first order, but
+                            % the nonlinearity is given in second order format.
+                            % See for instance example BenchmarkSSM1stOrder
+                            
+                            F = fnl_to_Fmulti(obj);
 
-                    for j = 2:d
-                        sizej = obj.N*ones(1,j+1);
-                        if isempty(obj.fnl{j-1})
-                            F{j} = [];
-                        else                                
-                            subsj = obj.fnl{j-1}.subs;
-                            valsj = -obj.fnl{j-1}.vals;
-                            if obj.order==1
-                                valsj = -valsj;
-                            end                            
-                            F{j} = tensor_to_multi_index(sptensor(subsj,valsj,sizej));
+                        else
+                            F = [];
                         end
+                        
+                    else  % Second order dynamical system was provided
+                        
+                        F = fnl_to_Fmulti(obj);
                     end
-
+                    
+                    
                 otherwise
                     error('The option should be tensor or multiindex.');
-
-            end            
-            
+            end
         end
             
         function n = get.n(obj)
@@ -140,20 +168,25 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         end
         
         function nKappa = get.nKappa(obj)
-            nKappa = size(obj.Fext.kappas,1);
+            nKappa = numel(obj.Fext.data);
+        end
+        
+        function kappas = get.kappas(obj)
+            %kappas stored in rows
+            sz_kappa = size(obj.Fext.data(1).kappa,2);
+            kappas = reshape([obj.Fext.data.kappa],sz_kappa,[]).';
+            
         end
         
         function Fext = get.Fext(obj)
             if obj.order ==1
                 Fext = obj.Fext;
             elseif obj.order == 2
-                Fext.kappas = obj.fext.kappas;
-                nKappas = size(Fext.kappas,1);
-                Fext.coeffs = [obj.fext.coeffs;
-                    sparse(obj.n, nKappas)];
+                Fext.data    = set_Fext(obj);
                 Fext.epsilon = obj.fext.epsilon;
             end                           
         end
+        
         
         function degree = get.degree(obj)
             degree = 0;
@@ -166,28 +199,75 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
         
         [V, D, W] = linear_spectral_analysis(obj)
         
-        function add_forcing(obj,coeffs,kappas,varargin)
-            if obj.order==1
-                obj.Fext.coeffs = coeffs;
-                obj.Fext.kappas = kappas;   
-                if nargin == 4
-                    obj.Fext.epsilon = varargin{1};
-                else
-                    obj.Fext.epsilon = 1;
-                end                
-            elseif obj.order==2
-                obj.fext.coeffs = coeffs;
-                obj.fext.kappas = kappas;   
-                if nargin == 4
-                    obj.fext.epsilon = varargin{1};
-                else
-                    obj.fext.epsilon = 1;
+        function add_forcing(obj,f,varargin)
+            if ~isfield(f, 'data') % new format
+                switch obj.order
+                    case 1
+                        nn = size(f,1);
+                        Kappas = varargin{1};
+                        data(1).kappa = Kappas(1);
+                        data(2).kappa = Kappas(2);
+                        data(1).F_n_k(1).coeffs = f(:,1);
+                        data(1).F_n_k(1).ind    = zeros(1,nn);
+                        data(2).F_n_k(1).coeffs = f(:,2);
+                        data(2).F_n_k(1).ind    = zeros(1,nn);
+                        f_ext.data = data;
+                    case 2
+                        nn = size(f,1);
+                        Kappas = varargin{1};
+                        data(1).kappa = Kappas(1);
+                        data(2).kappa = Kappas(2);
+                        data(1).f_n_k(1).coeffs = f(:,1);
+                        data(1).f_n_k(1).ind    = zeros(1,nn);
+                        data(2).f_n_k(1).coeffs = f(:,2);
+                        data(2).f_n_k(1).ind    = zeros(1,nn);
+                        f_ext.data = data;
                 end
+                
+                if numel(varargin)>1
+                    f_ext.epsilon = varargin{2};
+                else
+                    f_ext.epsilon = 1;
+                end
+            else
+                f_ext = f;
+            end
+            
+            switch obj.order
+
+                case 1                    
+                    obj.Fext.data = f_ext.data;                        
+
+                    if isfield(f_ext,'epsilon')
+                        obj.Fext.epsilon = f_ext.epsilon;
+                        
+                    elseif nargin == 3
+                        obj.Fext.epsilon = varargin{1};
+
+                    else
+                        obj.Fext.epsilon = 1;
+
+                    end
+
+                case 2                   
+                    obj.fext.data = f_ext.data;                        
+
+                    if isfield(f_ext,'epsilon')
+                        obj.fext.epsilon = f_ext.epsilon;
+                        
+                    elseif nargin == 3
+                        obj.fext.epsilon = varargin{1};
+
+                    else
+                        obj.fext.epsilon = 1;
+
+                    end
             end
         end
+
         
-        fext = compute_fext(obj,t)
-        Fext = evaluate_Fext(obj,t)
+        fext = compute_fext(obj,t,x,xd)
+        Fext = evaluate_Fext(obj,t,z)
         fnl = compute_fnl(obj,x,xd)
         dfnl = compute_dfnldx(obj,x,xd)
         dfnl = compute_dfnldxd(obj,x,xd)
@@ -198,3 +278,98 @@ classdef DynamicalSystem < matlab.mixin.SetGetExactNames
 end
 
 
+function [F] = fnl_to_Ftens(obj)
+d = length(obj.fnl) + 1;
+F = cell(1,d);
+F{1} = sptensor(obj.A);
+
+for j = 2:d
+    sizej = obj.N*ones(1,j+1);
+    if isempty(obj.fnl(j-1)) || isempty(obj.fnl(j-1).coeffs)
+        F{j} = sptensor(sizej);
+    else
+        [fnl_t] = multi_index_to_tensor(obj.fnl(j-1).coeffs,obj.fnl(j-1).ind);
+        subsj = fnl_t.subs;
+        valsj = -fnl_t.vals;
+        if obj.order==1
+            valsj = -valsj;
+        end
+        F{j} = sptensor(subsj,valsj,sizej);
+    end
+    
+end
+end
+
+function [F] = fnl_to_Fmulti(obj)
+d = length(obj.fnl) + 1;
+F = repmat(struct('coeffs',[],'ind',[]),1,d);
+
+for j = 2:d
+    if isempty(obj.fnl(j-1))
+        F(j) = [];
+        %% following elseif could be removed if inputs are always strictly either first
+        % or second order - not like in bernoulli beam
+    elseif size(obj.fnl(j-1).coeffs,1) == obj.N %fnl already 1st order form
+        
+        F(j).coeffs = obj.fnl(j-1).coeffs;
+        F(j).ind    = obj.fnl(j-1).ind;
+        
+    else % conversion to 1st order form
+        F(j).coeffs = [-obj.fnl(j-1).coeffs;...
+            sparse(obj.n, size(obj.fnl(j-1).coeffs,2)) ];
+        if obj.n == size(obj.fnl(j-1).ind,2) % No nonlinear damping
+            F(j).ind = [obj.fnl(j-1).ind.';...
+                sparse(obj.n, size(obj.fnl(j-1).ind,1)) ].';
+        else %Nonlinear damping
+            F(j).ind = obj.fnl(j-1).ind;
+        end
+        
+    end
+end
+end
+
+function [fnl_multi]  = set_fnl(fnlTensor)
+%Sets second order nonlinear force in multi-index format
+d   = length(fnlTensor) + 1;
+
+fnl_multi = repmat(struct('coeffs',[],'ind',[]),1,d-1);
+
+for j = 2:d
+    if isempty(fnlTensor{j-1}) || nnz(fnlTensor{j-1}) == 0
+
+    else
+        sizej = fnlTensor{j-1}.size;
+        subsj = fnlTensor{j-1}.subs;
+        valsj = fnlTensor{j-1}.vals;
+        tmp = tensor_to_multi_index(sptensor(subsj,valsj,sizej));
+        fnl_multi(j-1).coeffs = tmp.coeffs;
+        fnl_multi(j-1).ind = tmp.ind;
+    end
+end
+end
+
+function [data] = set_Fext(obj)
+% Creates the data struct from the input second order force
+% Structs for storing the coefficients
+F_n_k = repmat(struct('coeffs',[],'ind',[]),numel(obj.fext.data(1).f_n_k),1);
+data  = repmat(struct('kappa',[],'F_n_k',[]),numel(obj.fext.data),1);
+
+% Fill the structs
+for i = 1:numel(obj.fext.data)
+    for j = 1:numel(obj.fext.data(i).f_n_k)
+        F_n_k(j).coeffs = [obj.fext.data(i).f_n_k(j).coeffs;...
+            sparse(obj.n, size(obj.fext.data(i).f_n_k(j).coeffs,2)) ];
+        if size(obj.fext.data(i).f_n_k(j).ind,2) == obj.n
+            F_n_k(j).ind = [obj.fext.data(i).f_n_k(j).ind.';...
+                sparse(obj.n, size(obj.fext.data(i).f_n_k(j).ind,1)) ].';
+        elseif  size(obj.fext.data(i).f_n_k(j).ind,2) == obj.N
+            F_n_k(j).ind =  obj.fext.data(i).f_n_k(j).ind;
+        elseif size(obj.fext.data(i).f_n_k(j).ind,2) > 0;
+            error('Wrong dimensionality of external force ')
+        end
+
+    end
+    data(i).F_n_k = F_n_k;
+    data(i).kappa = obj.fext.data(i).kappa;
+end
+end

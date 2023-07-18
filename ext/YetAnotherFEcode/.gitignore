@@ -2,6 +2,8 @@
 *.asv
 # Data files
 *.mat
+!external/NLvib_v1.3/**/*.mat
+!examples/**/*.mat
 # Figures
 *.fig
 *.png
@@ -11,3 +13,4 @@
 *.avi
 *.mp4
 diary
+myprojects/

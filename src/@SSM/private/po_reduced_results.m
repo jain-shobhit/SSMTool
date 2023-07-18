@@ -58,8 +58,8 @@ if isempty(isomega)
     grid on; box on; 
     set(gca,'LineWidth',1.2);
     set(gca,'FontSize',14);
-    xlabel('$\Omega$','interpreter','latex','FontSize',16);
-    ylabel('$\epsilon$','interpreter','latex','FontSize',16);
+    xlabel('$$\Omega$$','interpreter','latex','FontSize',16);
+    ylabel('$$\epsilon$$','interpreter','latex','FontSize',16);
 else
     if isomega
         figure; 
@@ -68,15 +68,15 @@ else
         grid on; box on; 
         set(gca,'LineWidth',1.2);
         set(gca,'FontSize',12);
-        xlabel('$\Omega$','interpreter','latex','FontSize',16);
+        xlabel('$$\Omega$$','interpreter','latex','FontSize',16);
         ylabel('$T$','interpreter','latex','FontSize',16);
         subplot(2,1,2);
         coco_plot_bd(thm, runid, 'om', '||x||_{2,D}');
         grid on; box on; 
         set(gca,'LineWidth',1.2);
         set(gca,'FontSize',12);
-        xlabel('$\Omega$','interpreter','latex','FontSize',16);
-        ylabel('$||x-\bar{x}||_{\mathcal{L}_2[0,1]}$','interpreter','latex','FontSize',16);           
+        xlabel('$$\Omega $$','interpreter','latex','FontSize',16);
+        ylabel('$$\|x-\bar{x}\|_{\mathcal{L}_2[0,1]}$$','interpreter','latex','FontSize',16);           
     else
         figure; 
         subplot(2,1,1);
@@ -84,15 +84,16 @@ else
         grid on; box on; 
         set(gca,'LineWidth',1.2);
         set(gca,'FontSize',12);
-        xlabel('$\epsilon$','interpreter','latex','FontSize',16);
-        ylabel('$T$','interpreter','latex','FontSize',16);
+        xlabel('$$\epsilon $$','interpreter','latex','FontSize',16);
+        ylabel('$$T$$','interpreter','latex','FontSize',16);
         subplot(2,1,2);
         coco_plot_bd(thm, runid, 'eps', '||x||_{2,D}');
         grid on; box on; 
         set(gca,'LineWidth',1.2);
         set(gca,'FontSize',12);
-        xlabel('$\epsilon$','interpreter','latex','FontSize',16);
-        ylabel('$||x-\bar{x}||_{\mathcal{L}_2[0,1]}$','interpreter','latex','FontSize',16);
+        xlabel('$$\epsilon $$','interpreter','latex','FontSize',16);
+        ylabel('$$||x-\bar{x}||_{\mathcal{L}_2[0,1]}$$','interpreter','latex','FontSize',16);
+
     end 
 end
 
@@ -176,9 +177,11 @@ grid on
 set(gca,'LineWidth',1.2);
 set(gca,'FontSize',14);
 if dim<3
-    xlabel('$\mathrm{Re}(z_1)$','interpreter','latex','FontSize',16);
+
+    xlabel('$$\mathrm{Re}(z_1)$$','interpreter','latex','FontSize',16);
     ylabel('$t$','interpreter','latex','FontSize',16);
-    zlabel('$\mathrm{Im}(z_1)$','interpreter','latex','FontSize',16);
+    zlabel('$$\mathrm{Im}(z_1)$$','interpreter','latex','FontSize',16);
+
     plot3(ya(1,:),ts(:,1)',ya(2,:),'b-','LineWidth',2);
     for k=1:dnum:numSegs 
         yk = ys(:,:,k);
@@ -188,9 +191,11 @@ if dim<3
         pause(0.2) 
     end    
 else
-    xlabel('$\mathrm{Re}(z_1)$','interpreter','latex','FontSize',16);
-    ylabel('$\mathrm{Im}(z_1)$','interpreter','latex','FontSize',16);
-    zlabel('$\mathrm{Re}(z_2)$','interpreter','latex','FontSize',16);
+
+    xlabel('$$\mathrm{Re}(z_1)$$','interpreter','latex','FontSize',16);
+    ylabel('$$\mathrm{Im}(z_1)$$','interpreter','latex','FontSize',16);
+    zlabel('$$\mathrm{Re}(z_2)$$','interpreter','latex','FontSize',16);
+
     plot3(ya(1,:),ya(2,:),ya(3,:),'b-','LineWidth',2);
     for k=1:dnum:numSegs 
         yk = ys(:,:,k);

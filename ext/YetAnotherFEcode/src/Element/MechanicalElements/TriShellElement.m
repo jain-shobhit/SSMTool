@@ -376,36 +376,79 @@ classdef TriShellElement < Element
             F = T_e.' * F_local;
         end
         
-        function [F] = f2(self,x)         
+        function [F] = F2(self,x,y)         
             % this function computes the element stiffness matrix and
             % internal force vector in the global coordinates when the
             % nodes : matrix containing Nodal coordinates
             % x : vector of full DOFs in global coordinates    
             
             x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);
             T_e = self.transformationMatrix;
             % Displacements in local coordinates
-            q = T_e*x_e; 
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
             % Forces and Stiffness in local coordinates            
-            [F_local] = self.f2_local(q);
+            [F_local] = self.f2_local(q_x,q_y);
             % Force in global coordinates            
             F = T_e.' * F_local;
         end
         
-        function [F] = f3(self,x)         
+        function [Df2] = DF2(self,x,y)
+            % this function computes the Jacobian of the quadratic component 
+            % of the nonlinear internal force in global coordinates 
+            % at the element level. The Jacobian is evaluated along the
+            % direction (x) and acted on the vector y. Hence, the output is a vector.  
+            
+            x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);
+            T_e = self.transformationMatrix;
+            % Displacements in local coordinates
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            % Forces and Stiffness in local coordinates            
+            [DF_local] = self.Df2_local(q_x,q_y);
+            % Force in global coordinates            
+            Df2 = T_e.' * DF_local;
+        end
+        
+        function [F] = F3(self,x,y,z)
             % this function computes the element stiffness matrix and
             % internal force vector in the global coordinates when the
             % nodes : matrix containing Nodal coordinates
             % x : vector of full DOFs in global coordinates    
             
             x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);
+            z_e = self.extract_element_data(z);
             T_e = self.transformationMatrix;
             % Displacements in local coordinates
-            q = T_e*x_e; 
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            q_z = T_e*z_e;
             % Forces and Stiffness in local coordinates            
-            [F_local] = self.f3_local(q);
+            [F_local] = self.f3_local(q_x,q_y,q_z);
             % Force in global coordinates            
             F = T_e.' * F_local;
+        end
+        
+        function Df3 = DF3(self,x,y,z)
+            % this function computes the Jacobian of the cubic component of the
+            % nonlinear internal force in global coordinates at the element
+            % level. The Jacobian is evaluated along the direction (x,y)
+            % and acted on the vector z. Hence, the output is a vector.
+            x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);
+            z_e = self.extract_element_data(z);
+            m = size(x_e,1);
+            
+            T_e = self.transformationMatrix;
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            q_z = T_e*z_e;
+            
+            [DF_local] = self.Df3_local(q_x,q_y,q_z);
+            Df3 = T_e.' * DF_local.data;
         end
         
         function [K] = stiffness_derivative(self,x,v)
@@ -806,17 +849,28 @@ classdef TriShellElement < Element
             Mblu = diag(lumped);
         end
         
-        function F2 = f2_local(self,x)
+        function F2 = f2_local(self,x,y)
             LQ = self.LocalQuantities;            
             % N
-            BNL=[x.' * LQ.Kxx;
+            BNLx=[x.' * LQ.Kxx;
                 x.' * LQ.Kyy;
                 x.' * LQ.Kxy];
             
-            N=LQ.Am * (LQ.BL + BNL/2) * x;
             % Internal forces
-            F2 =  LQ.A * BNL.' * LQ.Am * LQ.BL * x + LQ.A * LQ.BL.' * LQ.Am * (BNL/2) * x;
-            LQ.A * (LQ.BL + BNL).' * LQ.Am * (LQ.BL + BNL/2) * x - LQ.A*(LQ.BL.'*(LQ.Am*(LQ.BL*x)));
+            F2 =  LQ.A * BNLx.' * LQ.Am * LQ.BL * y + ...
+                LQ.A * LQ.BL.' * LQ.Am * (BNLx/2) * y;
+        end
+        
+        function DF2 = Df2_local(self,x,y)
+            LQ = self.LocalQuantities;
+            % N
+            BNLx=[x.' * LQ.Kxx; x.' * LQ.Kyy; x.' * LQ.Kxy];
+            BNLy=[y.' * LQ.Kxx; y.' * LQ.Kyy; y.' * LQ.Kxy];            
+               
+            DF2 =  LQ.A * BNLx.' * LQ.Am * LQ.BL * y + ...
+                LQ.A * LQ.BL.' * LQ.Am * (BNLx/2) * y +...
+                LQ.A * BNLy.' * LQ.Am * LQ.BL * x + ...
+                LQ.A * LQ.BL.' * LQ.Am * (BNLy/2) * x; % perhaps simply twice of the first two terms
         end
         
         function T2 = T2_local(self)
@@ -833,14 +887,25 @@ classdef TriShellElement < Element
             end
         end
         
-        function F3 = f3_local(self,x)
+        function F3 = f3_local(self,x,y,z)
             LQ = self.LocalQuantities;            
             % N
-            BNL=[x.' * LQ.Kxx;
-                x.' * LQ.Kyy;
-                x.' * LQ.Kxy];
-
-            F3 =  LQ.A * BNL.' * LQ.Am * (BNL/2) * x  ;            
+            BNLx=[x.' * LQ.Kxx; x.' * LQ.Kyy; x.' * LQ.Kxy];
+            BNLy=[y.' * LQ.Kxx; y.' * LQ.Kyy; y.' * LQ.Kxy];
+            
+            F3 =  LQ.A * BNLx.' * LQ.Am * (BNLy/2) * z;            
+        end
+        
+        function DF3 = Df3_local(self,x,y,z)
+            LQ = self.LocalQuantities;
+            % N
+            BNLx=[x.' * LQ.Kxx; x.' * LQ.Kyy; x.' * LQ.Kxy];
+            BNLy=[y.' * LQ.Kxx; y.' * LQ.Kyy; y.' * LQ.Kxy];            
+            BNLz=[z.' * LQ.Kxx; z.' * LQ.Kyy; z.' * LQ.Kxy];
+            
+            DF3 = LQ.A * (BNLx.' * LQ.Am * (BNLy/2) * z + ...
+                BNLz.' * LQ.Am * (BNLx/2) * y + ...
+                BNLy.' * LQ.Am * (BNLz/2) * x);
         end
         
         function T3 = T3_local(self)

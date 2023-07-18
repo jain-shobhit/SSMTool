@@ -16,8 +16,8 @@ function y = reduced_dynamics_symbolic(lamdMaster,R0,options,varargin)
 sympref('FloatingPointOutput',false);
 lamdRe = real(lamdMaster);
 lamdIm = imag(lamdMaster);
-lamdRe = lamdRe(1:2:end);
-lamdIm = lamdIm(1:2:end);
+lamdRe = lamdRe(1:2:end-1);
+lamdIm = lamdIm(1:2:end-1);
 order  = numel(R0);
 m      = numel(lamdRe);
 beta   = cell(m,1); % coefficients - each cell corresponds to one mode
@@ -32,7 +32,8 @@ end
 
 % assemble and simplify nonlinear coefficients (when isdamped=false)
 for k = 2:order
-    R = R0{k};
+    R = R0(k);
+
     coeffs = R.coeffs;
     ind = R.ind;
     if ~isempty(coeffs)
@@ -101,7 +102,7 @@ if ~options.isauto && ~isempty(varargin)
     for k=1:num_kappa
         kappak = kappa_pos(k);
         idm = find(mFreqs(:)==kappak);
-        R_10 = R1{1}.coeffs;
+        R_10 = R1.R(1).coeffs;
         idk = find(kappa_set==kappak);
         r = R_10(2*idm-1,idk);    
         iNonauto = [iNonauto; idm];

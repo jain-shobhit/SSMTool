@@ -50,15 +50,19 @@ BeamAssembly = Assembly(BeamMesh);
 M = BeamAssembly.mass_matrix();
 
 u0 = randi(5,303,1);
-F2 = BeamAssembly.vector('F2',u0);
+F2 = BeamAssembly.vector('F2',u0,u0);
 T2 = BeamAssembly.tensor('T2',[BeamMesh.nDOFs, BeamMesh.nDOFs, BeamMesh.nDOFs], [2,3]);
 F2check = ttv(T2,{u0,u0},[2,3]);
 norm(F2check.data - F2)/norm(F2)
 
-F3 = BeamAssembly.vector('F3',u0);
+F3 = BeamAssembly.vector('F3',u0,u0,u0);
 T3 = BeamAssembly.tensor('T3',[BeamMesh.nDOFs, BeamMesh.nDOFs, BeamMesh.nDOFs, BeamMesh.nDOFs], [2,3,4]);
 F3check = ttv(T3,{u0,u0,u0},[2,3,4]);
 norm(F3check.data - F3)/norm(F3)
+
+
+[~,F] = BeamAssembly.tangent_stiffness_and_force(u0);
+norm(K*u0 + F2 + F3 - F)/norm(F)
 
 S = BeamAssembly.scalar('strain_energy',u0);
 
@@ -72,7 +76,6 @@ myElementConstructor = @()ThermalBeamElement(b, h, myThermalBeamMaterial); % sam
 
 % Mesh
 ThermalBeamMesh = Mesh(Nodes);
-ThermalBeamMesh.nDOFPerNode = nDOFperNode;
 ThermalBeamMesh.create_elements_table(Elements,myElementConstructor);
 
 % Set dirichlet DOFs

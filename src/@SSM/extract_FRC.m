@@ -26,12 +26,13 @@ function FRC = extract_FRC(obj, parName, parRange, ORDER)
 %           SSM is constructed and then FRC is obtained.
 % parRange: continuation domain of parameter
 % order:    order of SSM expansion to be used for FRC computation
+%
+% FRC:      FRC data struct
+%
+% See also: FRC_LEVEL_SET, FRC_CONT_EP, FRC_CONT_PO 
+
 f1 = figure('Name','Norm');
-if isnumeric(obj.FRCOptions.outdof)
-    f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
-else
-    f2 = figure('Name','Amplitude at DOFs');
-end
+f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
 figs = [f1, f2];
 colors = get(0,'defaultaxescolororder');
 totalComputationTime = zeros(size(ORDER));
@@ -53,7 +54,8 @@ for j = 1:numel(ORDER)
             else
                 assert(~isempty(obj.System.Fext.epsilon), 'The epsilon field is empty in the dynamical system external forcing');
             end
-            [resLambda,resFreq] = find_eigs_in_freq_range(parRange,lambda);
+            [resLambda,resFreq] = find_eigs_in_freq_range(parRange,lambda,obj.FRCOptions.resType);
+
             % obtain subintervals around each resonant eigenvalue
             [parNodes, nSubint] = subdivide_freq_range(parRange, resFreq);
         case 'amp'
@@ -95,12 +97,14 @@ for j = 1:numel(ORDER)
                 FRC{i}   = obj.FRC_cont_ep(runid,resModes,order,mFreqs,parName,parSubRange);
                 plotStyle = 'lines';
             case 'continuation po'
-                error('not implemented yet')
+                runid  = ['freqSubint',num2str(i)];
+                FRCi = obj.FRC_cont_po(runid,resModes,order,parSubRange);
+                FRC{i}  = cat(2,FRCi{:});
+                plotStyle = 'circles';
         end
     end
     % concatenate cell contents as struct arrays
     FRC = cat(1,FRC{:});
-    
     totalComputationTime(j) = toc(startFRC);
     
     %% plot FRC in physical coordinates
@@ -125,17 +129,27 @@ if i<nSubint
 end
 end
 
-function [resLambda, resFreq] = find_eigs_in_freq_range(Omega,lambda)
-natFreq = imag(lambda);
-resFreqID = intersect(find(natFreq>Omega(1)), find(natFreq<Omega(end)));
-resFreq = natFreq(resFreqID);
-resLambda = lambda(resFreqID);
-% remove repetitive eigenvalues, e.g., 1:1 internal resonance
-dFreq = resFreq(2:end)-resFreq(1:end-1);
-idrep = abs(dFreq)<1e-3*resFreq(1:end-1);
-resFreq(idrep)   = [];
-resLambda(idrep) = [];
-assert(~isempty(resFreq),'Input frequency range should include at least one natural frequency'); % we could still program this case
+function [resLambda, resFreq] = find_eigs_in_freq_range(Omega,lambda,resType)
+
+switch resType
+    case '2:1'  % Case of subharmonic resonance
+
+    natFreq = imag(lambda);
+    resFreqID = intersect(find(2*natFreq>Omega(1)), find(2*natFreq<Omega(end)));
+    resFreq = natFreq(resFreqID);
+    resLambda = lambda(resFreqID);
+
+    assert(~isempty(resFreq),'Input frequency range should include dual multiple of natural frequency'); 
+    
+    case '1:1'
+        
+    natFreq = imag(lambda);
+    resFreqID = intersect(find(natFreq>Omega(1)), find(natFreq<Omega(end)));
+    resFreq = natFreq(resFreqID);
+    resLambda = lambda(resFreqID);
+    assert(~isempty(resFreq),'Input frequency range should include at least one natural frequency'); 
+end
+
 end
 
 function [freqNodes, nSubint] = subdivide_freq_range(parRange,resFreq)

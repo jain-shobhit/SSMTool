@@ -5,7 +5,7 @@ Em = eye(m);
 beta  = cell(m,1); % coefficients - each cell corresponds to one mode
 kappa = cell(m,1); % exponants
 for k = 2:order
-    R = R_0{k};
+    R = R_0(k);
     coeffs = R.coeffs;
     ind = R.ind;
     if ~isempty(coeffs)

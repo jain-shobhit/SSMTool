@@ -1,49 +1,35 @@
-function y = ode_het(obj, t, z, p, data)
+function y = ode_het(obj, t, z, p)
 % ODE_HET This function presents nonvectorized implementation of vector field
 % Input z - state, p - omega
 
-if isempty(data)
-    obj.system.Omega        = p(1:end-1,:);
-    obj.system.fext.epsilon = p(end,:);
-    y = obj.system.odefun(t, z);
-else
+om = p(1:end-1,:);
+ep = p(end,:);
+
+Omega = obj.system.Omega;
+obj.system.Omega = om;
+switch obj.system.order
+    case 1
+        % record original values
+        epsilon = obj.system.Fext.epsilon;
+        % assign vector values
+        obj.system.Fext.epsilon = ep;
+        % evaluate RHS
+        y = obj.system.odefun(t,z);
+        % assign back orignal values
+        obj.system.Fext.epsilon = epsilon;
+    case 2
     n = obj.system.n;
-    nt = size(z,2);
     x  = z(1:n,:); 
     xd = z(n+1:2*n,:);
-    om = p(1:end-1,:);
-    ep = p(end,:);
-
-    % linear part
-    y1 = obj.system.BinvA*z;
-
-    % nonlinear part
-    fnl = data.fnl; % fnl.coeffs and fnl.ind
-    numNonlinearTerms = size(fnl.coeffs,2);
-    y2 = 0;
-    for i=1:numNonlinearTerms
-        coeff = repmat(fnl.coeffs(:,i),[1, nt]);
-        ind = fnl.ind(i,:);
-        % find nonzero exponents
-        expind = find(ind);
-        s = 1;
-        for j=1:numel(expind)
-            s = s.*z(expind(j),:).^ind(expind(j));
-        end
-        s = repmat(s, [n, 1]);
-        y2 = y2+coeff.*s;
-    end
-    
-    % external forcing
-    assert(~isempty(obj.system.fext), 'no external forcing');
-    fext_coeffs = repmat(obj.system.fext.coeffs(:,1), [1, nt]);
-    if data.isbaseForce
-        fext_harm = repmat(ep.*om.^2.*cos(obj.system.fext.kappas(1)*om.*t), [n, 1]);
-    else
-        fext_harm = repmat(ep.*cos(obj.system.fext.kappas(1)*om.*t), [n, 1]);
-    end
-    y3 = 2*fext_coeffs.*fext_harm;
-    
-    y = y1 + [zeros(n,nt); obj.system.M\(-y2+y3)];
+        % record original values
+        epsilon = obj.system.fext.epsilon;
+        % assign vector values
+        obj.system.fext.epsilon = ep;
+        % evaluate RHS
+        y = obj.system.odefun(t,[x;xd]);
+        % assign back orignal values
+        obj.system.fext.epsilon = epsilon;
+    otherwise
+        error('Dynamical system order must be 1 or 2')
 end
-end
+obj.system.Omega = Omega;

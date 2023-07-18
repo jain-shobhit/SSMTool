@@ -20,8 +20,8 @@ nnel  = size(elements,2); % number of nodes per element
 switch nnel
     case {4,10} % tetrahedra
         faces = [1 2 4; 2 3 4; 1 3 4; 1 2 3];
-    case {6,15} % wedges
-        error(' Wedge elements not supported (triangular & rectangular faces...')
+    case 15 % wedges
+        faces = [4 10 5 11 6 12; 1 7 2 8 3 9; 1 7 2 5 10 4; 2 8 3 6 11 5; 1 9 3 6 12 4];
     case {8,20} % hexahedra
         faces = [1 2 6 5; 2 3 7 6; 3 4 8 7; 4 1 5 8; 1 2 3 4; 5 6 7 8];
 end

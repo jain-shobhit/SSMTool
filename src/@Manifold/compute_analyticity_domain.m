@@ -14,8 +14,8 @@ run_idx = 1;
 for order = floor(appr_order/2):appr_order
     p = zeros(1,1+order);
     for j = 1:order
-        if any(any(R_0{j}.coeffs))
-            p(j+1) =   real(nonzeros(R_0{j}.coeffs(1,:)));
+        if any(any(R_0(j).coeffs))
+            p(j+1) =   real(nonzeros(R_0(j).coeffs(1,:)));
         end
     end
     

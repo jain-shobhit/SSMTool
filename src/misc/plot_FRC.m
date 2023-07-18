@@ -28,7 +28,7 @@ end
 Aout  = [FRC.Aout];
 stab  = [FRC.stability];
 Znorm = [FRC.Znorm];
-if isa(outdof,'function_handle');outdof = 1:round(numel(Aout)/numel(stab));end
+
 numOutdof = numel(outdof);
 numPts    = numel(stab);
 Aout = reshape(Aout, [numOutdof, numPts]);
@@ -81,10 +81,9 @@ switch plotStyle
             end
             plot(Par(stab),Aout(stab,k),'o','Color', color,'MarkerSize',10,'DisplayName',strcat('SSM-$$\mathcal{O}(',num2str(order),')$$ - stable'));
             plot(Par(~stab),Aout(~stab,k),'s','Color', color,'MarkerSize',10,'DisplayName',strcat('SSM-$$\mathcal{O}(',num2str(order),')$$ - unstable'));
-            add_labels('$\Omega$',strcat('$||z_{',num2str(outdof(k)),'}||_{\infty}$'))
             lgd = legend();
             set(lgd,'Interpreter','latex','Location','best');
-            xlabel('$\Omega$','Interpreter','latex');
+            add_labels('$\Omega$',strcat('$||z_{',num2str(outdof(k)),'}||_{\infty}$'))            
         end
 end
 

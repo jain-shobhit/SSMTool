@@ -25,8 +25,8 @@ switch type
         % left side
         DW = 0; R = 0;
         for j = 1:length(W0)
-            DW = DW+expand_multiindex_derivative(W0{j},p); 
-            R  = R+expand_multiindex(R0{j},p);
+            DW = DW+expand_multiindex_derivative(W0(j),p); 
+            R  = R+expand_multiindex(R0(j),p);
         end        
         lhs = spblkdiag(DW)*R(:);
         lhs = reshape(lhs,obj.dimSystem,npts);
@@ -49,16 +49,17 @@ switch type
         % left side
         DWp = 0; R = 0;
         for j = 1:length(W0)
-            DWp = DWp+expand_multiindex_derivative(W0{j},p); 
-            R  = R+expand_multiindex(R0{j},p);
+            DWp = DWp+expand_multiindex_derivative(W0(j),p); 
+            R  = R+expand_multiindex(R0(j),p);
         end
         % leading-order autnomous parat
         DWphi = 0;
         for i = 1:obj.System.nKappa
             % zeroth order
-            R = R + epf * R1{1}.coeffs(:,i) * exp(1i * R1{1}.kappas(i) * omega * t);
-            DWphi = DWphi+epf * W1{1}.coeffs(:,i) * exp(1i * W1{1}.kappas(i) * omega * t) ...
-                * 1i * W1{1}.kappas(i);
+            R10 = R1(i).R(1);
+            R = R + epf * R10.coeffs * exp(1i * R1(i).kappa * omega * t);
+            W10 = W1(i).W(1);
+            DWphi = DWphi+epf * W10.coeffs * exp(1i * W1(i).kappa * omega * t) * 1i * W1(i).kappa;
         end        
         % higher-order nonautomous part
         warning('\n current implementation only considers leading-order nonautonomous part\n');
@@ -68,7 +69,7 @@ switch type
         lhs = lhs+DWphi*omega;
         lhs = obj.System.B*real(lhs);
         % rhs
-        rhs = obj.System.A*z+obj.System.evaluate_Fnl(z)+ obj.System.evaluate_Fext(t);
+        rhs = obj.System.A*z+obj.System.evaluate_Fnl(z)+ obj.System.evaluate_Fext(t,z);
         res = lhs-rhs;
         y = sqrt(sum(res.^2));
         figure;

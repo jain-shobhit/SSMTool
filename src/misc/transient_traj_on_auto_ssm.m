@@ -21,7 +21,7 @@ end
 beta  = [];
 kappa = [];
 for k = 2:numel(R_0)
-    R = R_0{k};
+    R = R_0(k);
     betak = R.coeffs;
     if ~isempty(betak)
         kappak = R.ind;

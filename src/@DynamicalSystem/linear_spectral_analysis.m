@@ -85,7 +85,7 @@ else
             [W, Dw] = eigs(obj.A',obj.B',E_max,obj.Options.sigma);
             if obj.Options.RemoveZeros
                 [W,Dw] = remove_zero_modes(W,Dw);
-            end
+            end             
             [Lambda_sorted,I] = sort(diag(Dw),'descend','ComparisonMethod','real');
             % further sort if real parts are equal (very close)
             [Lambda_sorted,II] = sort_close_real_different_imag(Lambda_sorted);
@@ -153,8 +153,8 @@ for j = 1:length(Lambda)
     if skip 
         skip = false;
         continue;
-    end    
-    if j+1<=length(Lambda) % make sure Lambda(j+1) exists 
+    end 
+    if j+1<=length(Lambda) % make sure Lambda(j+1) exists
     if ~isreal(Lambda(j))&& abs(Lambda(j)-conj(Lambda(j+1)))<1e-8*abs(Lambda(j))
         % extract complex eigenpair
         V0 = V(:,j:j+1);
@@ -166,6 +166,14 @@ for j = 1:length(Lambda)
         Lambda([j,j+1]) = Lambda0(I);
         V(:,[j,j+1]) = V0(:,I);
         W(:,[j,j+1]) = W0(:,I);
+%         Lambda(j) = Lambda0(I(1));
+%         V(:,j) = V0(:,I(1));
+%         W(:,j) = W0(:,I(1));
+        % ensure complex conjugate eigenvalues and eigenvectors - not true
+        % if A and B are not real
+%         Lambda(j+1) = conj(Lambda(j));                
+%         V(:,j+1) = conj(V(:,j));
+%         W(:,j+1) = conj(W(:,j));
         % move to the next pair of eigenvalues
         skip = true; 
     end

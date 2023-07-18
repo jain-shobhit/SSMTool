@@ -1,4 +1,4 @@
-function W1 = leading_order_nonauto_SSM(A,B,W_M,V_M,Lambda_M_vector,kappa_set,F_kappa,reltol,kNonauto,iNonauto,rNonauto,order,om)
+function W1 = leading_order_nonauto_SSM(A,B,W_M,V_M,Lambda_M_vector,kappa_set,F_kappa,reltol,kNonauto,iNonauto,rNonauto,om)
 % this function is adapted from compute_perturbed_wisker for the purpose of
 % parallel computation. the reader may refer to the
 % compute_perturbed_wisker for more details about this function.
@@ -37,7 +37,6 @@ parfor j=1:numOm
     assert(norm(f-rNonauto)<1e-3*norm(f), 'inner resonance assumption does not hold');
 
     % solving linear equations
-    W1j = cell(1,order + 1);
     W10 = zeros(N,K);
     % Use conjugacy to reduce computations: fe^{i<kappa,omega>t} + \bar{f}e^{i<-kappa,omega>t}
     [redConj,mapConj] = conj_red(kappa_set, F_kappa);
@@ -58,7 +57,8 @@ parfor j=1:numOm
                 error('there exist redundancy in kappa of external forcing');
         end
     end
-    W1j{1}.coeffs = W10; W1j{1}.kappas = kappa_set;
+    W1j = struct();
+    W1j.coeffs = W10; W1j.kappas = kappa_set;
     W1{j} = W1j;
 end    
 end

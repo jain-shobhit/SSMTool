@@ -30,7 +30,7 @@ end
 if opts.bi_direct~=default.bi_direct
     prob = coco_set(prob, 'cont', 'bi_direct', opts.bi_direct);
 end
-if opts.PtMX~=default.PtMX
+if any(opts.PtMX~=default.PtMX)
     prob = coco_set(prob, 'cont', 'PtMX', opts.PtMX);
 end
 % settings for correction

@@ -22,17 +22,17 @@ for j = 1:nOmega
     if DS.order==2
         x_kappa = zeros(DS.n,DS.nKappa);
         for k = 1:DS.nKappa
-            kOmega = DS.fext.kappas(k) * omegas(j);
-            x_kappa(:,k) = (-kOmega^2 * DS.M + 1i * kOmega * DS.C + DS.K)\DS.fext.coeffs(:,k);
+            kOmega = DS.fext.data(k).kappa * omegas(j);
+            x_kappa(:,k) = (-kOmega^2 * DS.M + 1i * kOmega * DS.C + DS.K)\DS.fext.data(k).f_n_k(1).coeffs;
         end
-        response{j} = DS.fext.epsilon * real( x_kappa * exp(1i * DS.fext.kappas * phi));   
+        response{j} = DS.fext.epsilon * real( x_kappa * exp(1i * DS.kappas * phi));   
     else
         z_kappa = zeros(DS.N,DS.nKappa);
         for k = 1:DS.nKappa
-            kOmega = DS.Fext.kappas(k) * omegas(j);
-            z_kappa(:,k) = (DS.A-1i*kOmega*DS.B)\DS.Fext.coeffs(:,k);
+            kOmega = DS.Fext.data(k).kappa * omegas(j);
+            z_kappa(:,k) = (DS.A-1i*kOmega*DS.B)\DS.Fext.data(k).F_n_k(1).coeffs;
         end
-        response{j} = DS.Fext.epsilon * real( z_kappa * exp(1i * DS.Fext.kappas * phi));    
+        response{j} = DS.Fext.epsilon * real( z_kappa * exp(1i * DS.kappas * phi));    
     end   
 %% 
 % $$\|\mathbf{z}\|_{L_2}=\sqrt{\frac{1}{T}\int_0^T\mathbf\|\mathbf{z}(t)\|^2dt}\approx 

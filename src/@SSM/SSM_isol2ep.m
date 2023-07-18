@@ -48,27 +48,27 @@ obj.choose_E(resonant_modes)
 iNonauto = []; % indices for resonant happens
 rNonauto = []; % value of leading order contribution
 kNonauto = []; % (pos) kappa indices with resonance
-kappa_set= obj.System.Fext.kappas; % each row corresponds to one kappa
+kappa_set= [obj.System.Fext.data.kappa]; % each row corresponds to one kappa
 kappa_pos = kappa_set(kappa_set>0);
 num_kappa = numel(kappa_pos); % number of kappa pairs
 for k=1:num_kappa
     kappak = kappa_pos(k);
     idm = find(mFreqs(:)==kappak); % idm could be vector if there are two frequencies are the same
     obj.System.Omega = lambdaIm(2*idm(1)-1);
-    
-    [W_1, R_1] = obj.compute_perturbed_whisker(order);
 
-    R_10 = R_1{1}.coeffs;
+    [W_1, R_1] = obj.compute_perturbed_whisker(0,[],[]);
+
     idk = find(kappa_set==kappak);
-    r = R_10(2*idm-1,idk);
-    
+    R_10 = R_1(idk).R.coeffs;
+    r = R_10(2*idm-1);
+
     iNonauto = [iNonauto; idm];
-    rNonauto = [rNonauto; r];  
+    rNonauto = [rNonauto; r];
     kNonauto = [kNonauto; idk];
 end
-%% Construct COCO-compatible vector field 
-% create data to vector field 
-lamd  = struct(); 
+%% Construct COCO-compatible vector field
+% create data to vector field
+lamd  = struct();
 lamd.lambdaRe = lambdaRe; lamd.lambdaIm = lambdaIm;
 Nonauto = struct();
 Nonauto.iNonauto = iNonauto; Nonauto.rNonauto = rNonauto; Nonauto.kNonauto = kNonauto;
@@ -77,13 +77,14 @@ Nonauto.iNonauto = iNonauto; Nonauto.rNonauto = rNonauto; Nonauto.kNonauto = kNo
 ispolar = strcmp(obj.FRCOptions.coordinates, 'polar');
 fdata.ispolar = ispolar;
 fdata.isbaseForce = obj.System.Options.BaseExcitation;
+
 if ispolar
     odefun = @(z,p) ode_2mDSSM_polar(z,p,fdata);
 else
     odefun = @(z,p) ode_2mDSSM_cartesian(z,p,fdata);
 end
 funcs  = {odefun};
-% 
+%
 %% continuation of reduced dynamics w.r.t. parName
 %
 prob = coco_prob();
@@ -117,7 +118,7 @@ if strcmp(obj.FRCOptions.sampStyle, 'uniform')
     else
         epSamp = linspace(parRange(1),parRange(2), nPar);
         prob   = coco_add_event(prob, 'UZ', 'eps', epSamp);
-    end        
+    end
 end
 
 runid = coco_get_id(oid, 'ep');
@@ -130,15 +131,15 @@ if isomega
 else
     cont_args = [{'eps'},args1(:)' ,args2(:)',{'om'}];
 end
-    
+
 coco(prob, runid, [], 1, cont_args, parRange);
 
 %% extract results of reduced dynamics at sampled frequencies
 FRC = ep_reduced_results(runid,obj.FRCOptions.sampStyle,ispolar,isomega,args1,args2);
 
 %% FRC in physical domain
-FRCdata = struct();        FRCdata.isomega = isomega; 
-FRCdata.mFreqs  = mFreqs;  FRCdata.order  = order; 
+FRCdata = struct();        FRCdata.isomega = isomega;
+FRCdata.mFreqs  = mFreqs;  FRCdata.order  = order;
 FRCdata.ispolar = ispolar; FRCdata.modes  = resonant_modes;
 FRC = FRC_reduced_to_full(obj,Nonauto,'ep',FRC,FRCdata,W_0,W_1,outdof,varargin{:});
 

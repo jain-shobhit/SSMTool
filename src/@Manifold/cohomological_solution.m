@@ -1,7 +1,9 @@
-function [W_0i, R_0i,multi_input] = cohomological_solution(obj, i,  W_0, R_0,multi_input)
+function [W_0i, R_0i,multi_input] = cohomological_solution(obj, i,  W_0, R_0,multi_input,DStype)
 %% COHOMOLOGICAL_SOLUTION Solution of cohomological equations at order i
+
 switch obj.Options.notation
     case 'tensor'
+        
         % The function computes the SSM where we solve the invariance equation
         %
         % $$\mathbf{B}D\mathbf{S}\mathbf{R}=\mathbf{A}\mathbf{S}+\mathbf{F}\circ\mathbf{S}$$
@@ -100,29 +102,46 @@ switch obj.Options.notation
             R_j = {sptensor(speye(m,m)),R_0{i+1-j}};
             % R_j = {sptensor(speye(m,m)),R_0i{j}}; % used for parfor
             SR = SR + tensor_composition(W_0{j},R_j,P,SIZE);
-        end
-        L_i = FS - ttm(SR,B,1);
-        %%
-        % Convert $\mathbf{L}_i$ object to sparse vector
-        L_i = sptenmat(permute(L_i,[1, ndims(L_i):-1:2]), 1:ndims(L_i));
-        if isempty(L_i.vals)
-            L_i = sparse(N_i,1);
+        end   
+        if m==1 % tensor_toolbox has issues
+            if ~isempty(FS.vals)
+                FS = sparse(FS.subs(:,1), FS.subs(:,2), FS.vals, N_i, 1);
+            else
+                FS = sparse(N_i,1);
+            end
+            
+            if ~isempty(SR.vals)
+                SR = sparse(SR.subs(:,1), SR.subs(:,2), SR.vals, N_i, 1);
+            else
+                SR = sparse(N_i,1);
+            end
+            L_i = FS - B*SR;
+
         else
-            L_i = sparse(L_i.subs(:,1),L_i.subs(:,2),L_i.vals,N_i,1);
+            L_i = FS - ttm(SR,B,1);
+            %%
+            % Convert $\mathbf{L}_i$ object to sparse vector
+            L_i = sptenmat(permute(L_i,[1, ndims(L_i):-1:2]), 1:ndims(L_i));
+            if isempty(L_i.vals)
+                L_i = sparse(N_i,1);
+            else
+                L_i = sparse(L_i.subs(:,1),L_i.subs(:,2),L_i.vals,N_i,1);
+            end            
+            L_i = reshape(L_i,N,[]);
         end
         %% *Solving for SSM coefficients and Reduced dynamics*
         % $${{\mathcal{C}}_{i}}~\mathfrak{vec}\left(\mathbf{S}_{i}\right)=\mathfrak{vec}\left(\mathbf{L}_{i}\right)-\underbrace{\left(\mathbf{I}_{m^{i}}\otimes\mathbf{B}\mathbf{S}_{1}\right)}_{{\mathcal{D}}_{i}}\mathfrak{vec}\left(\mathbf{R}_{i}\right)$$
         %
-        W_0i = zeros(N,m^i); % W_0i is dense in nature
-        R_0i = zeros(m,m^i); % This could be sparse
-        
-        L_i = reshape(L_i,N,[]);
+        W_0i = zeros(N,m^i); % generally dense
+        R_0i = sparse(m,m^i);        
+
         nRes = 0;
         paramStyle = obj.Options.paramStyle;
         parfor l = 1:m^i
             lambda_l = Lambda_Mi(l);
             C_l = lambda_l * B - A;
             L_il = L_i(:,l);
+
             %%
             % Checking for near-inner resonances
             J = find(abs(lambda_l - Lambda_M)<abstol);
@@ -156,7 +175,7 @@ switch obj.Options.notation
             W_0i(:,l) = lsqminnorm(C_l,b_l);
         end
         disp([num2str(nRes) ' (near) inner resonance(s) detected at order ' num2str(i)])
-                
+        
         W_0i = reshape(sptensor(W_0i(:)), [N, m*ones(1,i)]);
         R_0i = reshape(sptensor(R_0i(:)), [m, m*ones(1,i)]);
         W_0i = permute(W_0i,[1, ndims(W_0i):-1:2]);
@@ -172,69 +191,245 @@ switch obj.Options.notation
         N   = obj.dimSystem; % Full system dimensionality in first-order form
         l   = numel(obj.E.spectrum); % dim(M): M is the master modal subspace
         F   = obj.System.F; % Full system Nonlinearity coefficients at different orders
-        
+
         W_M = multi_input.W_M; % Right eigenvectors of the modal subspace
         H   = multi_input.H;    % composition coefficients
-        %% Setup for case with symmetries
-        % Conjugate center index at all orders
         
-        z_k             = multi_input.Z_cci(k);     % Highest index that coefficients are computed for in conjugate ordering.
-        % This is precisely the conjugate center inder (cci) at order k
-        Lambda_M_vector = multi_input.Lambda_M_vector; % Vector with master evals sorted by size and imag/real
-        K               = flip(sortrows(nsumk(l,k,'nonnegative')).',2);
-        K               = K(:,multi_input.revlex2conj{k});
-        K               = K(:,1:z_k);           % Set of order k multi-indices in conjugate ordering up to conjugate center index
+        switch DStype
+            case 'real'
+            %% Setup for case with symmetries
+            multi_input.ordering = 'conjugate';
+            
+            % Conjugate center index at all orders
+            z_k             = multi_input.Z_cci(k);     % Highest index that coefficients are computed for in conjugate ordering.
+
+            Lambda_M_vector = multi_input.Lambda_M_vector; % Vector with master evals sorted by size and imag/real
+            K               = flip(sortrows(nsumk(l,k,'nonnegative')).',2);
+            K               = K(:,multi_input.revlex2conj{k});
+            K               = K(:,1:z_k);           % Set of order k multi-indices in conjugate ordering up to conjugate center index
         
+            case 'complex'
+            multi_input.ordering = 'revlex';
+
+            z_k             = multi_input.Z_cci(k);        % Contains amount of multi-indices for every order
+            Lambda_M_vector = multi_input.Lambda_M_vector; % Vector with master evals in rev_lex order as in R_0(1)
+            K               = flip(sortrows(nsumk(l,k,'nonnegative')).',2); % Multi-indices in reverse lex. ordering
+            multi_input.k   = k;                           % Used in coeffs_composition, revlex 
+        end
         %% Make input into functions more clear
         % To make the code picture more clear we unify some input parameters into a
         % field.
         multi_input.N = N;
-        multi_input.K = K;
+        multi_input.K = K;        
         %% Assemble RHS
         % The right hand side terms can be split into three groups, which are be implemented
-        % independently. Mixed Terms
-        L_k = B * mixed_terms_in_SR(W_0,R_0,multi_input);
+        % independently. 
+        
+        % Mixed Terms
+        WR = sparse(N,z_k);
+        
+        for m = 2:k-1
+            WR = WR - coeffs_mixed_terms(k,m,W_0,R_0,multi_input,'aut'); % Dependent on ordering, chooses conj, or revlex computation
+        end
+
         
         % Force composition terms
         
         % The composition coefficients of power series
-        H_k  = composition_coefficients_of_powerseries(W_0,H,multi_input);
+        H_k  = coeffs_composition(W_0,H,multi_input); % Dependent on ordering, chooses conj, or revlex computation
         H{k} = H_k;
-        % Now the force contribution for the equation at order k is computed
-        L_k = L_k + autonomous_force_multi_index(F,H,multi_input);
-        L_k = reshape(L_k,N*z_k,1);
+        multi_input.H = H;
         
-        % Extract the near kernel of the coefficient matrix
-        % coordinate directions do not change - we use the evals as in rev. lex
-        % ordering - lambda_i has to be multiplied with i-th entry of a multi-index
-        Lambda_Mk_vector         = sum(K.*Lambda_M_vector);
-        [K_k,G_k,innerresonance] = explicit_kernel_multi_index(z_k,Lambda_M_vector,Lambda_Mk_vector,W_M,obj.Options.reltol);
+        %% Nonlinearity terms
+        % Now the nonlinearity contribution for the equation at order k is computed
+        Fn = sparse(N,z_k);
+        for n = 2:min(k,multi_input.nl_order) % k+1 since this term includes a derivative
+            if ~isempty(F(n)) && ~isempty(F(n).coeffs) && ~isempty(F(n).ind)
+                Fn  = Fn + F(n).coeffs* ...
+                     compute_pi(F(n).ind.',K,multi_input); % Dependent on ordering, chooses conj, or revlex computation
+            end
+        end       
         
-        if innerresonance
-            % here we use S_1 in rev_lex order since G_k is  constructed in rev_lex order for
-            % correct reduced dynamics (coord directions)
-            Skron = kron(speye(z_k),B*restore_full_coeff(W_0{1},[],multi_input.Z_cci(1),multi_input.conj2revlex{1}));
-            R_0i   = G_k.' * K_k' * L_k;
-            L_k   = L_k - Skron*R_0i;
-        else
-            R_0i   = sparse(l*z_k,1);
+        if obj.System.order == 1 || obj.System.order == 2 && strcmp(DStype,'complex')
+            
+            if obj.System.order == 2
+                fprintf('\n Second order SSM computation only supported for real systems, using first order algorithm \n')
+            end
+            
+            RHS = B*WR + Fn;
+            RHS = reshape(RHS,N*z_k,1);
+            
+            [R_0i,W_0i,H_k] = first_order_computation(RHS,H_k,W_0, multi_input,z_k,l,N, K, Lambda_M_vector, ...
+                A,B,W_M,obj.Options.reltol,DStype);
+
+        else % 2nd order dynamical system
+            [R_0i,W_0i,H_k] = second_order_computation(obj,WR,Fn,H_k,z_k,l,N, K, Lambda_M_vector);
+
         end
-        
-        W_0i    = zeros(N,z_k);
-        L_k    = reshape(L_k,N,z_k);
-        
-        % Solve the linear system for the SSM-coefficients
-        parfor f = 1:z_k
-            C_k        = B*Lambda_Mk_vector(f)-A;
-            W_0i(:,f) = lsqminnorm(C_k,L_k(:,f));
-        end
-        R_0i        = reshape(R_0i,l,[]);
-        H_k(:,:,1) = W_0i;
         
         %pass on composition coefficients
         H{k}       = H_k;
+        
         multi_input.H = H;
 end
 % estime memory consumption from all variables in the current workspace
 obj.solInfo.memoryEstimate(i) = monitor_memory('caller');
 end
+
+
+function [R_0i,W_0i,H_k] = second_order_computation(obj,WR,Fn,H_k,z_k,l,N, K, Lambda_M_vector)
+M      = obj.System.M;
+C      = obj.System.C;
+Ym     = -( C * WR(1:(N/2),:) + M * WR((N/2+1):end,:)) - Fn(1:(N/2),:);
+Vm     = - WR(1:(N/2),:);
+
+THETA  = obj.E.adjointBasis(1:(N/2),:);
+PHI    = obj.E.basis(1:(N/2),:);
+
+Lambda_K         = sum(K.*Lambda_M_vector);
+[I,F] = resonance_detection(Lambda_M_vector,Lambda_K,obj.Options.reltol); % F contains multi-index positions
+
+[Rk] = reduced_dynamics_second_order(I,F,THETA,PHI,C,Lambda_K,Lambda_M_vector, M,Vm,Ym,l,z_k);
+
+w_0i    = zeros(N/2,z_k);
+w_0idot = zeros(N/2,z_k);
+
+for f = 1:z_k
+    
+    L_k = ( M * ((Lambda_K(f) + Lambda_M_vector.') .* PHI) + C*PHI ) * Rk(:,f);
+    L_k = L_k + Lambda_K(f)*M*Vm + Ym;
+    
+    % Set like for first order system
+    
+    
+    C_k = -(obj.System.K + Lambda_K(f)*C + Lambda_K(f)^2 *M );
+    w_0i(:,f)    = lsqminnorm(C_k,L_k(:,f));
+    w_0idot(:,f) = Lambda_K(f) * w_0i(:,f) + PHI * Rk(:,f) + Vm(:,f);
+end
+
+W_0i       = [w_0i;w_0idot];
+R_0i       = Rk;
+H_k(:,:,1) = W_0i;
+
+end
+
+function [R_0i,W_0i,H_k] = first_order_computation(RHS,H_k,W_0, multi_input,z_k,l,N, K, Lambda_M_vector, ...
+                        A,B,W_M,reltol, DStype)
+% Extract the near kernel of the coefficient matrix
+% coordinate directions do not change - we use the evals as in rev. lex
+% ordering - lambda_i has to be multiplied with i-th entry of a multi-index
+K_Lambda         = sum(K.*Lambda_M_vector);
+[K_k,G_k,innerresonance] = kernel_projection(z_k,Lambda_M_vector,K_Lambda,W_M,reltol);
+
+
+if innerresonance
+    switch DStype
+        case 'real'
+            % here we use S_1 in rev_lex order since G_k is  constructed in rev_lex order for
+            % correct reduced dynamics (coord directions)
+            W_0_full =coeffs_conj2full(W_0(1),[],multi_input.Z_cci(1),multi_input.conj2revlex{1},'TaylorCoeffs');
+            Skron = kron(speye(z_k),B*W_0_full.coeffs);
+        case 'complex'
+            Skron = kron(speye(z_k),B*W_0(1).coeffs);
+            
+    end
+    
+    R_0i   = G_k.' * K_k' * RHS;
+    RHS   = RHS - Skron*R_0i;
+else
+    R_0i   = sparse(l*z_k,1);
+end
+
+W_0i    = zeros(N,z_k);
+RHS    = reshape(RHS,N,z_k);
+
+% Solve the linear system for the SSM-coefficients
+parfor f = 1:z_k
+    C_k        = B*K_Lambda(f)-A;
+    W_0i(:,f) = lsqminnorm(C_k,RHS(:,f));
+end
+R_0i       = reshape(R_0i,l,[]);
+H_k(:,:,1) = W_0i;
+
+end
+
+
+function [K_k,G_k,innerresonance] = kernel_projection(z_k, Lambda_M_vector, Lambda_Mk_vector, W_M, reltol)
+%% COEFF_MATR_KERNEL Explicit kernel-construction of the coefficient-matrix
+% This function computes the kernel of the coefficient matrix for eigenvalue 
+% pairs that are in resonance as described in the document ''Explicit Kernel Extraction 
+% and Proof ofSymmetries of SSM Coefficients - Multi-Indexversion''.
+%SSM dimension
+l         = size(Lambda_M_vector,1);
+%Compare for all combinations if singularity occurs
+Lambda_Ci = Lambda_M_vector - Lambda_Mk_vector; % column vector - row vector
+%threshold below which resonance occurs
+ref       = min(abs(Lambda_M_vector));
+abstol = reltol*ref;
+%find eigenvalues that trigger resonance
+[I,F]  = find(abs(Lambda_Ci) < abstol); % I for eigenvalue and F for combination
+r_k = length(I);
+if r_k
+    innerresonance = 1;
+    
+    % create E_F, E_I
+    E_F = sparse( F, (1:r_k).', true(r_k,1), z_k, r_k);
+    E_I = sparse( I, (1:r_k).', true(r_k,1), l, r_k);
+    
+    % create K_k, G_k
+    K_k = khatri_rao_product(E_F, W_M(:,I));
+    G_k = khatri_rao_product(E_F, E_I)';
+else
+    innerresonance = 0;
+    
+    K_k=[];
+    G_k=[];
+end
+end
+
+
+function [I,F] = resonance_detection( Lambda_M_vector, Lambda_Mk_vector, reltol)
+%% COEFF_MATR_KERNEL Explicit kernel-construction of the coefficient-matrix
+% Detects the indices of eigenvector and multi-indices that lead to
+% singular 2nd order coefficient matrix
+
+%Compare for all combinations if singularity occurs
+Lambda_Ci = Lambda_M_vector - Lambda_Mk_vector; % column vector - row vector
+%threshold below which resonance occurs
+ref       = min(abs(Lambda_M_vector));
+abstol = reltol*ref;
+%find eigenvalues that trigger resonance
+[I,F]  = find(abs(Lambda_Ci) < abstol); % I for eigenvalue and F for combination
+end
+
+
+function [Rk] = reduced_dynamics_second_order(I,F,THETA,PHI,C,Lambda_K,Lambda, M,Vm,Ym,l,z_k)
+% F - multi-index positions that are resonant
+% I - Eigenvalue positions that are resonant
+
+Rk = zeros(l,z_k);
+% unique multi indices
+if any(F)
+[F_un, ~,i_F_un] = unique(F.');
+
+% Loop over multi-indices that lead to resonance
+ii = 1;
+
+for f = F_un
+    I_f = I((i_F_un == ii)); % All resonant eigenvalues for this multi - index
+    THETA_f = THETA(:,I_f);
+    
+    %PHI_f   = PHI(:,I_f);
+    %C_k_r =  THETA_f' * ( C* PHI_f + M * ((Lambda_K(f) + Lambda(I_f).') .* PHI_f)); %Coefficient Matrix
+    %RHS   = Lambda_K(f).*-THETA_f' * M*Vm(:,f) +-THETA_f' *(Ym(:,f));
+    %Rk(I_f,f) = lsqminnorm(C_k_r,RHS);
+
+    % Set analogous to first order case
+    Rk(I_f,f)= Lambda(I_f) .* -THETA_f'*M*Vm(:,f) + -THETA_f' *Ym(:,f);
+
+    
+    ii = ii +1;
+end
+end
+end
+

@@ -77,7 +77,7 @@ V = MyAssembly.unconstrain_vector(V0);
 mod = 2;
 v1 = reshape(V(:,mod),6,[]);
 figure(1);
-PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5)
+PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5);
 title(['Frequency = ' num2str(omega(mod)/(2*pi)) ' Hz'] )
 view(2);
 %% Damping matrix

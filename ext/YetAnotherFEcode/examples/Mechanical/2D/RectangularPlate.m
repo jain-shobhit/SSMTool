@@ -40,11 +40,29 @@ PlateAssembly = Assembly(myMesh);
 K = PlateAssembly.stiffness_matrix();
 M = PlateAssembly.mass_matrix();
 C = PlateAssembly.damping_matrix();
+PlateAssembly.DATA.K = K;
+PlateAssembly.DATA.M = M;
+PlateAssembly.DATA.C = C;
 
-% Tensor Assembly
-T2 = PlateAssembly.tensor('T2',[myMesh.nDOFs, myMesh.nDOFs, myMesh.nDOFs], [2,3]);
-T3 = PlateAssembly.tensor('T3',[myMesh.nDOFs, myMesh.nDOFs, myMesh.nDOFs, myMesh.nDOFs], [2,3,4]);
+%% Tensor Assembly
 
+nDOFs = PlateAssembly.Mesh.nDOFs;
+u0 = randi(5,nDOFs,1);
+F2 = PlateAssembly.vector('F2',u0,u0);
+T2 = PlateAssembly.tensor('T2',[nDOFs, nDOFs, nDOFs], [2,3]);
+F2check = ttv(T2,{u0,u0},[2,3]);
+norm(F2check.data - F2)/norm(F2)
+
+F3 = PlateAssembly.vector('F3',u0,u0,u0);
+T3 = PlateAssembly.tensor('T3',[nDOFs, nDOFs, nDOFs, nDOFs], [2,3,4]);
+F3check = ttv(T3,{u0,u0,u0},[2,3,4]);
+F3check = sparse(F3check.subs,ones(length(F3check.subs),1),F3check.vals,nDOFs,1);
+norm(F3check - F3)/norm(F3)
+
+[~,F] = PlateAssembly.tangent_stiffness_and_force(u0);
+norm(K*u0 + F2 + F3 - F)/norm(F)
+
+%%
 myMesh.set_essential_boundary_condition([bnodes{1}, bnodes{2}],1:3,0) % simply supported on two opposite edges
 % myMesh.set_essential_boundary_condition([bnodes{1}],1:6,0) % cantilever on one edge
 
@@ -72,14 +90,16 @@ F = Pressure*PlateAssembly.uniform_body_force();
 u_lin = PlateAssembly.solve_system(K,F);
 ULIN = reshape(u_lin,6,[]);
 figure(2); PlotMesh(Nodes,Elements,0);
-hold on; PlotFieldonDeformedMesh(Nodes,Elements,ULIN(1:3,:).','factor',1)
+hold on; PlotFieldonDeformedMesh(Nodes,Elements,ULIN(1:3,:).','factor',1);
 
 % Nonlinear response
-u = static_equilibrium( PlateAssembly, u_lin, F );
+u = static_equilibrium( PlateAssembly, F );
 U = reshape(u,6,[]);
 hold on
-PlotFieldonDeformedMesh(Nodes,Elements,U(1:3,:).','factor',1, 'color', 'w' )
+PlotFieldonDeformedMesh(Nodes,Elements,U(1:3,:).','factor',1, 'color', 'w' );
 colormap gray
+
+drawnow
 
 %% Dynamic response using Implicit Newmark
 % forcing frequency of the average of first two natural frequencies

@@ -1,25 +1,21 @@
-function [ u_lin, U ] = static_equilibrium( Assembly, uInit, Fext, varargin )
+function [ u_lin, u ] = static_equilibrium( Assembly, Fext, varargin )
 % finds the equilibrium configuration of the model subject to Fext load.
 %   Detailed explanation goes here
-
-% compute linear displacement
-u0 = zeros(Assembly.Mesh.nDOFs,1);
-[K,~] = Assembly.tangent_stiffness_and_force(u0);
+K = Assembly.DATA.K;
 u_lin = Assembly.solve_system(K,Fext);
-n = size(u_lin,1);
-% initial displacement
-u0 = Assembly.constrain_vector(uInit);
 
-[nsteps,tol,method,maxIter] = parse_inputs(varargin{:});
+[u0,nsteps,tol,method,displayoption,maxIter] = parse_inputs(u_lin, varargin{:});
+
 switch method
     case 'fsolve'
-        options = optimoptions('fsolve','SpecifyObjectiveGradient',true,'MaxIterations',maxIter);
+        u0 = Assembly.constrain_vector(u_lin);
+        options = optimoptions('fsolve','SpecifyObjectiveGradient',true,...
+            'MaxIterations',maxIter,'Display',displayoption);
         [ueq] = fsolve(@(u)f(u,Assembly,Fext),u0,options);
-        U = Assembly.unconstrain_vector(ueq);
+        u = Assembly.unconstrain_vector(ueq);
         
     case 'newton'
-        U = zeros(n,nsteps);
-        u = uInit;
+        u = u0/nsteps;
         figure; xlabel('Normalized load');ylabel('$$\|\mathbf{u}\|$$')
         h = animatedline;
         addpoints(h,0,0);
@@ -41,14 +37,12 @@ switch method
                     disp('Not converged: maximum number of iterations reached')
                     break
                 end
-                
                 correction = Assembly.solve_system(K,residual);
                 u = u + correction;
                 it = it + 1;
             end
             addpoints(h,j/nsteps,norm(u));
-            drawnow 
-            U(:,j) = u;
+            drawnow
         end
 end
 
@@ -62,25 +56,34 @@ F = Assembly.constrain_vector(Fint - Fext);
 end
 
 
-function [nsteps,tol,method,maxIter] = parse_inputs(varargin)
+function [u0,nsteps,tol,method,displayoption,maxIter] = parse_inputs(u_lin, varargin)
 %% parsing inputs
 defaultnsteps = 100;
 defaulttol = 1e-6;
 defaultmethod = 'fsolve';
-defaultmaxiter = 100;
+defaultdisplay = 'final';
+defaultmaxiter = 1000;
+defaultu0 = u_lin;
 p = inputParser;
 addParameter(p,'nsteps',defaultnsteps, @(x)validateattributes(x, ...
     {'numeric'},{'nonempty','integer','positive'}) );
-addParameter(p,'maxIter',defaultmaxiter, @(x)validateattributes(x, ...
-    {'numeric'},{'nonempty','integer','positive'}) );
 addParameter(p,'tol',defaulttol, @(x)validateattributes(x, ...
     {'numeric'},{'nonempty','positive'}) );
+addParameter(p,'maxIter',defaultmaxiter, @(x)validateattributes(x, ...
+    {'numeric'},{'nonempty','integer','positive'}) );
 addParameter(p,'method',defaultmethod,@(x)validateattributes(x, ...
     {'char'},{'nonempty'}))
+addParameter(p,'display',defaultdisplay,@(x)validateattributes(x, ...
+    {'char'},{'nonempty'}))
+addParameter(p,'u0',defaultu0,@(x)validateattributes(x, ...
+    {'numeric'},{'nonempty'}))
 parse(p,varargin{:});
 
 nsteps = p.Results.nsteps;
 tol = p.Results.tol;
 method = p.Results.method;
+displayoption = p.Results.display;
+u0 = p.Results.u0;
+assert(all(size(u0) == size(u_lin)),['Size of mismatch for u0: Correct size(u0) = ' num2str(size(u_lin))])
 maxIter = p.Results.maxIter;
 end

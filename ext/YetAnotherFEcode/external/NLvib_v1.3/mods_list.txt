@@ -1,0 +1,16 @@
+NLvib for YetAnotherFEcode
+
+LIST OF CHANGES (wrt original NLvib)
+[2021/04/21]
+- "FE_system" system class added to handle FE models from YetAnotherFEcode
+- "FE" and "CUSTOM" nonlinearity case added to
+	. HB_residual.m (HB_nonlinear_forces_AFT function, global nonlinearities)
+	. shooting_residual.m (nonlinear_forces function)
+
+ADDITIONAL NOTES
+- "FE" case has been tested using HB and NMA (see 1D beam example "BeamNLvib")
+- [2021/9/9] "CUSTOM" case tested only for Frequency Response with HB (see "Beam2D_NLvib_ROM.m")
+
+EXAMPLES using NLvib:
+- ../examples/Mechanical/1D/BeamNLvib.m
+- ../examples/Mechanical/2D/Beam2D_NLvib_ROM.m

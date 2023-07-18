@@ -49,11 +49,11 @@ obj.choose_E(resModes)
 [beta,kappa] = extract_beta_kappa(m,order,R_0,mFreqs);
 
 %% SSM computation of non-autonomous part
-[iNonauto, rNonauto, kNonauto, W_1] = extract_red_nonauto(obj,mFreqs,lambdaIm,order,parName);
+[iNonauto, rNonauto, kNonauto, W_1] = extract_red_nonauto(obj,mFreqs,lambdaIm,order,W_0,R_0,parName);
 % Here iNonauto,rNonauto and kNonauto gives the indices for resonant happens
 % value of leading order contribution and (pos) kappa indices with resonance
 
-%% Construct COCO-compatible vector field 
+%% Construct COCO-compatible vector field
 fdata = struct();
 fdata.beta  = beta;
 fdata.kappa = kappa;
@@ -136,7 +136,7 @@ if strcmp(sampStyle, 'uniform')
     else
         epSamp = linspace(parRange(1),parRange(2), nPar);
         prob   = coco_add_event(prob, 'UZ', 'eps', epSamp);
-    end        
+    end
 end
 
 runid = coco_get_id(oid, 'ep');
@@ -166,8 +166,13 @@ timeFRCPhysicsDomain = tic;
 
 % Loop around a resonant mode
 if obj.FRCOptions.nonAutoParRedCom
-    kappa_set= obj.System.Fext.kappas;
-    F_kappa = obj.System.Fext.coeffs;  % each column corresponds to one kappa
+    nKappa  = obj.System.nKappa;
+    kappa_set = zeros(nKappa,1);
+    F_kappa = zeros(obj.dimSystem,nKappa); % each column corresponds to one kappa
+    for ka_idx = 1:nKappa
+        kappa_set(ka_idx) = obj.System.Fext.data(ka_idx).kappa;
+        F_kappa(:,ka_idx) = obj.System.Fext.data(ka_idx).F_n_k(1).coeffs;
+    end
     A = obj.System.A;           % A matrix
     B = obj.System.B;           % B matrix
     W_M = obj.E.adjointBasis;   % Right eigenvectors of the modal subspace
@@ -175,18 +180,27 @@ if obj.FRCOptions.nonAutoParRedCom
     reltol = obj.Options.reltol;
     % *Near external resonances and Leading order reduced dynamics*
     Lambda_M_vector = obj.E.spectrum;
-    
+
     % transfer minimum data for reducing communication load
-    W1 = leading_order_nonauto_SSM(A,B,W_M,V_M,Lambda_M_vector,kappa_set,F_kappa,reltol,kNonauto,iNonauto,rNonauto,order,om);
+    W1 = leading_order_nonauto_SSM(A,B,W_M,V_M,Lambda_M_vector,kappa_set,F_kappa,reltol,kNonauto,iNonauto,rNonauto,om);
 
     % map it back to physical coordinates
     for j=1:numel(om)
         % Forced response in Physical Coordinates
         statej = state(j,:);
+        % create compatible W1j
+        idle = repmat(struct('coeffs',[],'ind',[]),1  , 1);
+        W1j  = repmat(struct('kappa' ,[],'W',idle),nKappa, 1);
+        assert(norm(kappa_set-W1{j}.kappas)<1e-6,'the orders of kappa are not consistent');
+        for i = 1:nKappa
+            W1j(i).kappa = kappa_set(i);
+            W1j(i).W(1).coeffs = W1{j}.coeffs(:,i);
+            W1j(i).W(1).ind    = sparse(obj.dimManifold,1);
+        end
         if obj.System.Options.BaseExcitation
             epsf(j) = epsf(j)*(om(j))^2;
-        end        
-        [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W1{j}, statej, epsf(j), nt, mFreqs, outdof);
+        end
+        [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W1j, statej, epsf(j), nt, mFreqs, outdof);
 
         % collect output in array
         Aout_frc(j,:) = Aout;
@@ -196,18 +210,20 @@ if obj.FRCOptions.nonAutoParRedCom
         if saveIC
             Z0_frc(j,:) = Zic; % initial state
         end
-    end  
+
+    end
+
 else
     parfor j = 1:numel(om)
         % compute non-autonomous SSM coefficients
-        if isomega 
+        if isomega
             set_omega(obj,om(j));
             if obj.Options.contribNonAuto
-                [W_1j, R_1] = obj.compute_perturbed_whisker(order);
-
-                R_10 = R_1{1}.coeffs;
+                [W_1j, R_1] = obj.compute_perturbed_whisker(0,[],[]);
+                
+                R_10 = R_1(kNonauto).R.coeffs;
                 assert(~isempty(R_10), 'Near resonance does not occur, you may tune tol');
-                f = R_10((kNonauto-1)*2*m+2*iNonauto-1);
+                f = R_10(2*iNonauto-1);
 
                 assert(norm(f-rNonauto)<1e-3*norm(f), 'inner resonance assumption does not hold');
 
@@ -221,7 +237,7 @@ else
         % Forced response in Physical Coordinates
         if obj.System.Options.BaseExcitation
             epsf(j) = epsf(j)*(om(j))^2;
-        end        
+        end
         statej = state(j,:);
         [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W_1j, statej, epsf(j), nt, mFreqs, outdof);
 
@@ -232,10 +248,10 @@ else
 
         if saveIC
             Z0_frc(j,:) = Zic; % initial state
-        end 
+        end
     end
 end
-%% 
+%%
 % Record output
 FRC.Aout_frc  = Aout_frc;
 FRC.Zout_frc  = Zout_frc;
@@ -258,7 +274,7 @@ FRC = array2structArray(FRC);
 % end
 
 varargout{1} = FRC;
-fdir = fullfile(pwd,'data',runid,'SSMep.mat');
+fdir = fullfile(data_dir,runid,'SSMep.mat');
 save(fdir, 'FRC','FRCinfo');
 end
 
@@ -285,7 +301,7 @@ beta  = cell(m,1); % coefficients - each cell corresponds to one mode
 kappa = cell(m,1); % exponants
 Em = eye(m);
 for k = 2:order
-    R = R_0{k};
+    R = R_0(k);
     coeffs = R.coeffs;
     ind = R.ind;
     if ~isempty(coeffs)
@@ -293,7 +309,7 @@ for k = 2:order
             betai = coeffs(2*i-1,:);
             [~,ki,betai] = find(betai);
             kappai = ind(ki,:);
-            % check resonant condition  
+            % check resonant condition
             l = kappai(:,1:2:end-1);
             j = kappai(:,2:2:end);
             nk = numel(ki);
@@ -308,11 +324,11 @@ for k = 2:order
 end
 end
 
-function [iNonauto, rNonauto, kNonauto, W_1] = extract_red_nonauto(obj,mFreqs,lambdaIm,order,parName)
+function [iNonauto, rNonauto, kNonauto, W_1] = extract_red_nonauto(obj,mFreqs,lambdaIm,order,W0,R0,parName)
 iNonauto = []; % indices for resonant happens
 rNonauto = []; % value of leading order contribution
 kNonauto = []; % (pos) kappa indices with resonance
-kappa_set= obj.System.Fext.kappas; % each row corresponds to one kappa
+kappa_set= obj.System.kappas; % each row corresponds to one kappa
 kappa_pos = kappa_set(kappa_set>0);
 num_kappa = numel(kappa_pos); % number of kappa pairs
 for k=1:num_kappa
@@ -321,15 +337,16 @@ for k=1:num_kappa
     if strcmp(parName,'freq')
         obj.System.Omega = lambdaIm(2*idm(1)-1);
     end
-    
-    [W_1, R_1] = obj.compute_perturbed_whisker(order);
 
-    R_10 = R_1{1}.coeffs;
+
+    [W_1, R_1] = obj.compute_perturbed_whisker(0,[],[]);
+
     idk = find(kappa_set==kappak);
-    r = R_10(2*idm-1,idk);
-    
+    R_10 = R_1(idk).R.coeffs;
+    r = R_10(2*idm-1);
+
     iNonauto = [iNonauto; idm];
-    rNonauto = [rNonauto; r];  
+    rNonauto = [rNonauto; r];
     kNonauto = [kNonauto; idk];
 end
 end
@@ -392,8 +409,8 @@ else
     prob = coco_add_pars(prob, 'realParts', 1:2:2*m-1, Reargs(:)');
     prob = coco_add_pars(prob, 'imagParts', 2:2:2*m, Imargs(:)');
     varargout{1} = Reargs;
-    varargout{2} = Imargs;    
-end 
+    varargout{2} = Imargs;
+end
 end
 
 function FRCy = array2structArray(FRCx)

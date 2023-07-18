@@ -8,5 +8,5 @@ assert(obj.order == 2, ' dfnldx can only be computed for second-order systems')
 
 dfnl = sparse(obj.n,obj.n);
 for j = 1:length(obj.fnl)
-    dfnl = dfnl + expand_tensor_derivative(obj.fnl{j},x);
+    dfnl = dfnl + expand_tensor_derivative(obj.fnl(j),x);
 end

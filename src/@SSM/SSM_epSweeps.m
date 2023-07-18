@@ -50,7 +50,7 @@ obj.choose_E(resonant_modes)
 iNonauto = []; % indices for resonant happens
 rNonauto = []; % value of leading order contribution
 kNonauto = []; % (pos) kappa indices with resonance
-kappa_set= obj.System.Fext.kappas; % each row corresponds to one kappa
+kappa_set= [obj.System.Fext.data.kappa]; % each row corresponds to one kappa
 kappa_pos = kappa_set(kappa_set>0);
 num_kappa = numel(kappa_pos); % number of kappa pairs
 for k=1:num_kappa
@@ -58,11 +58,11 @@ for k=1:num_kappa
     idm = find(mFreqs(:)==kappak); % idm could be vector if there are two frequencies are the same
     obj.System.Omega = lambdaIm(2*idm(1)-1);
     
-    [W_1, R_1] = obj.compute_perturbed_whisker(order);
+    [W_1, R_1] = obj.compute_perturbed_whisker(0,[],[]);
 
-    R_10 = R_1{1}.coeffs;
     idk = find(kappa_set==kappak);
-    r = R_10(2*idm-1,idk);
+    R_10 = R_1(idk).R.coeffs;
+    r = R_10(2*idm-1);    
     
     iNonauto = [iNonauto; idm];
     rNonauto = [rNonauto; r];  
@@ -78,6 +78,7 @@ Nonauto.iNonauto = iNonauto; Nonauto.rNonauto = rNonauto; Nonauto.kNonauto = kNo
 ispolar = strcmp(obj.FRCOptions.coordinates, 'polar');
 fdata.ispolar = ispolar;
 fdata.isbaseForce = obj.System.Options.BaseExcitation;
+
 if ispolar
     odefun = @(z,p) ode_2mDSSM_polar(z,p,fdata);
 else
@@ -265,6 +266,7 @@ else
         legDisp = [legDisp,idallunstab(1)];
     end
 end
+
 if ~isempty(outdof)
 ndof = numel(outdof);
 for i=1:ndof
@@ -325,6 +327,7 @@ for i=1:ndof
     grid on, axis tight; legend boxoff;
     view([-1,-1,1]);
 end
+
 end
 end
 

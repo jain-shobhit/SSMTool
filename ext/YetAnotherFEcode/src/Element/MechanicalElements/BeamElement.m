@@ -239,15 +239,41 @@ classdef BeamElement < Element
             K = Te.' * K_local * Te;
         end
         
-        function f2 = F2(self,x)
+        function f2 = F2(self,x,y)
             % this function computes the quadratic component of the
             % nonlinear internal force in global coordinates at the element
             % level.
             x_e = self.extract_element_data(x);
-            T_e = self.transformationMatrix;            
-            q = T_e*x_e;
+            y_e = self.extract_element_data(y);
+            m = size(x_e,1);   
             
-            f2 = T_e.' * self.S_2(q);           
+            T_e = self.transformationMatrix;            
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            
+            T2e = self.T2_local([m,m,m]);
+            f2 = ttv(T2e,{q_x,q_y},[2,3]);
+            f2 = T_e.' * f2.data;
+        end
+        
+        function Df2 = DF2(self,x,y)
+            % this function computes the Jacobian of the quadratic component 
+            % of the nonlinear internal force in global coordinates 
+            % at the element level. The Jacobian is evaluated along the
+            % direction (x) and acted on the vector y. Hence, the output is a vector.  
+            
+            x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);            
+            m = size(x_e,1);   
+            
+            T_e = self.transformationMatrix;            
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            
+            T2e = self.T2_local([m,m,m]);
+            T2e = T2e + permute(T2e,[1 3 2]);
+            Df2 = ttv(T2e,{q_x, q_y},[2 3]);
+            Df2 = T_e.' * Df2.data;
         end
         
         function [T2, globalSubs] = T2(self)
@@ -271,15 +297,44 @@ classdef BeamElement < Element
             T2 = ttm(T2e, {T_e.',T_e.',T_e.'},[1,2,3]);
         end
         
-        function f3 = F3(self,x)
+        function f3 = F3(self,x,y,z)
             % this function computes the quadratic component of the
             % nonlinear internal force in global coordinates at the element
             % level.
-            T_e = self.transformationMatrix;
             x_e = self.extract_element_data(x);
-            q = T_e*x_e;
+            y_e = self.extract_element_data(y);
+            z_e = self.extract_element_data(z);
+            m = size(x_e,1);
             
-            f3 = T_e.' * self.S_3(q);           
+            T_e = self.transformationMatrix;            
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            q_z = T_e*z_e;
+            
+            T3e = self.T3_local([m,m,m,m]);
+            f3 = ttv(T3e,{q_x,q_y,q_z},[2,3,4]);
+            f3 = T_e.' * f3.data; 
+        end
+        
+        function Df3 = DF3(self,x,y,z)
+            % this function computes the Jacobian of the cubic component of the
+            % nonlinear internal force in global coordinates at the element
+            % level. The Jacobian is evaluated along the direction (x,y) 
+            % and acted on the vector z. Hence, the output is a vector.  
+            x_e = self.extract_element_data(x);
+            y_e = self.extract_element_data(y);
+            z_e = self.extract_element_data(z);
+            m = size(x_e,1);
+            
+            T_e = self.transformationMatrix;
+            q_x = T_e*x_e;
+            q_y = T_e*y_e;
+            q_z = T_e*z_e;
+            
+            T3e = self.T3_local([m,m,m]);
+            T3e = T3e + permute(T3e,[1 3 4 2]) + permute(T3e,[1 3 2 4]);
+            Df3 = ttv(T3e, {q_x, q_y, q_z}, [2 3 4]);
+            Df3 = T_e.' * Df3.data;
         end
         
         function [T3, globalSubs] = T3(self)

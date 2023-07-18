@@ -56,10 +56,12 @@ classdef Manifold < matlab.mixin.SetGetExactNames
         
         [W_0, R_0] = compute_whisker(obj, order)
         
-        [W_0j, R_0j, multi_input] = cohomological_solution(obj, i,  W_0, R_0, multi_input)
+        [W_0j, R_0j, multi_input] = cohomological_solution(obj, i,  W_0, R_0, multi_input,DStype)
         
-        [W, f] = compute_perturbed_whisker(obj, order)            
-           
+        [W, f] = compute_perturbed_whisker(obj, order,W0,R0,varargin)            
+        
+        [DX,DS] = compute_sensitivity_coefficients(obj,order,W,R,X)            
+
         [rho] = compute_analyticity_domain(obj,appr_order) %compute analyticity domain at approximation order appr_order.
         
         err = compute_auto_invariance_error(obj,W,R,rhosamp,orders,ntheta,varargin);

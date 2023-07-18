@@ -21,6 +21,11 @@ classdef FRCOptions < matlab.mixin.SetGet
                                    % tune the range of subintervals. Specifically, [oma, omb] will
                                    % be changed as [frac1*oma, frac2*omb] except on the end points of frequency range.
         outdof = []                % output degree-of-freedom  
+        resType = '1:1'            % '1:1', '2:1' type of resonance of the forcing with natural eigenfrequency in a 2D SSM (relevant
+                                   % for method == 'continuation_po')
+        periodsRatio = 1             % 1,2,... looking for n*T periodic response where T is the forcing period (relevant for method ==
+                                   % 'continuation po')
+        branchSwitch= false        % Whether to continue branches (relevant for method == 'continuation_po')
         
         p0 = [];                   % parameters (epsilon,omega) in initial solution guess used in continuation
         z0 = [];                   % states (in slow-time reduced dynamics) in initial solution guess used in continuation
@@ -29,6 +34,10 @@ classdef FRCOptions < matlab.mixin.SetGet
                                    % each sampled excitation frequency. The manifold object is transferred in such a call. This 
                                    % communication cost is intenstive in parallel computation. To reduce the communication load,
                                    % we calculate the non-autonomous directly, instead of calling the routine if the field is true 
+                                   
+        omDepNonAuto    = true     % Whether frequency dependence of nonautonomous coefficients should be taken into account
+                                   % when computing manifold 
+        omDepNonAutoVal = []       % If omDepNonAuto == false, this parameter gives the forcing frequency for which the Manifold is computed                    
                                    
         parSamps = []              % solution at specific parameter values used for comparison or verification
         torRotDiret = 'pos'        % 'pos', 'neg' (rotation direction of tori)

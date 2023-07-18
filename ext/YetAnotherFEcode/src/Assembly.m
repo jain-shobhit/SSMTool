@@ -40,7 +40,6 @@ classdef Assembly < handle
                         varargin{:});
         end
 
-
         function [f] = internal_force(self, varargin)
             f = self.vector('internal_force',varargin{:});
         end
@@ -177,7 +176,7 @@ classdef Assembly < handle
             Elements = self.Mesh.Elements; % Elements array            
             
             % parsing element weights
-            [elementWeights,inputs] = obj.parse_inputs(varargin{:});
+            [elementWeights,inputs] = self.parse_inputs(varargin{:});
             
             % extracting elements with nonzero weights
             elementSet = find(elementWeights);
@@ -326,6 +325,21 @@ classdef Assembly < handle
                 v(dofs,:) = repmat(vals,[1,size(vc,2)]);
             else
                 v = vc;
+            end
+        end
+        
+        function ind_cons = free2constrained_index(self, ind_free)
+            % this function changes a DOF index, referred to the complete
+            % DOF indexes (free system), into the corresponding index in
+            % the constrained system. ind_free can also be a vector.
+            % Example:  free system DOFs = [1 2 3 4]
+            %           assume DOF #1 is constrained, we'll have:
+            %           constrained system DOFs = [2 3 4].
+            %           Then DOF#3 corresponds to   ind_free=3
+            %                                       ind_cons=2
+            ind_cons = zeros(size(ind_free));
+            for ii = 1 : length(ind_free)
+                ind_cons(ii) = find( self.Mesh.EBC.unconstrainedDOFs == ind_free(ii));
             end
         end
 

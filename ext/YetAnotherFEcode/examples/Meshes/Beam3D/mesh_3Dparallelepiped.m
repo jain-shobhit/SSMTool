@@ -9,6 +9,7 @@
 %
 % INPUTS    eltype: 'HEX8' or 'HEX20' for linear/quadratic brick
 %                   'TET4' or 'TET10' for linear/quadratic tetrahedron
+%                   'WED15' for wedges with quadratic shape functions
 %           l,w,t: length, width, thickness
 %           nx,ny,nz: number of elements for l,w,t respectively
 %           
@@ -103,6 +104,33 @@ switch eltype
                     -1 -1 0;  1 -1 0;  1 1 0;  -1 1 0]+1;
         elnodes = elnodes/2;
         NE = 20;
+    case 'WED15'
+        nodesWED = [0.,           0.,           1.
+                    0.,           1.,           1.
+                    1.,           0.,           1.
+                    1.,           1.,           1.
+                    0.,           0.,           0.
+                    0.,           1.,           0.
+                    1.,           0.,           0.
+                    1.,           1.,           0.
+                    0.,          0.5,           1.
+                    0.5,           0.,           1.
+                    0.5,          0.5,           1.
+                    0.5,          0.5,           0.
+                    0.5,           0.,           0.
+                    0.,          0.5,           0.
+                    1.,           0.,          0.5
+                    0.,           1.,          0.5
+                    0.,           0.,          0.5
+                    0.5,           1.,           1.
+                    1.,          0.5,           1.
+                    1.,          0.5,           0.
+                    0.5,           1.,           0.
+                    1.,           1.,          0.5];
+        elementsWED = [...
+          	2,  3,  1,  6,  7,  5, 11, 10,  9, 12, 13, 14, 16, 15, 17;
+            4,  3,  2,  8,  7,  6, 19, 11, 18, 20, 12, 21, 22, 15, 16];
+        NE = 15;
     otherwise
         error('Select a valid element type (HEX8 or HEX20)')
 end
@@ -147,6 +175,28 @@ switch NE
                 for kk = 1:nz
                     for hh = 1:size(elementsTET,1)
                         elnodes_temp = nodesTET(elementsTET(hh,:),:);
+                        elnodes_temp(:,1) = elnodes_temp(:,1)+lx*(ii-1);
+                        elnodes_temp(:,2) = elnodes_temp(:,2)+ly*(jj-1);
+                        elnodes_temp(:,3) = elnodes_temp(:,3)+lz*(kk-1);
+                        nodes(nn:nn+NE-1,:) = elnodes_temp;
+                        nn = nn+NE;
+                    end
+                end
+            end
+        end
+    case 15
+        nodesWED(:,1) = nodesWED(:,1)*lx;
+        nodesWED(:,2) = nodesWED(:,2)*ly;
+        nodesWED(:,3) = nodesWED(:,3)*lz;
+        
+        nel = nel*2;
+        nodes = zeros(nel*NE,3);
+        nn = 1;
+        for ii = 1:nx
+            for jj = 1:ny
+                for kk = 1:nz
+                    for hh = 1:size(elementsWED,1)
+                        elnodes_temp = nodesWED(elementsWED(hh,:),:);
                         elnodes_temp(:,1) = elnodes_temp(:,1)+lx*(ii-1);
                         elnodes_temp(:,2) = elnodes_temp(:,2)+ly*(jj-1);
                         elnodes_temp(:,3) = elnodes_temp(:,3)+lz*(kk-1);

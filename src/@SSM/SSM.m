@@ -5,6 +5,9 @@ classdef SSM < Manifold
     properties
        contOptions = cocoOptions();
        FRCOptions = FRCOptions();
+       
+       R_1 = []; % coefficients nonaut reduced dynamics, used in 'continuation po'
+       W_1 = []; % nonautonomoues ssm coefficients, used in 'continuation po'
     end
     
     methods
@@ -17,6 +20,15 @@ classdef SSM < Manifold
         varargout = FRC_cont_ep(obj,oid,modes,order,mFreq,parName,parRange,outdof,varargin);
         
         [FRC] = FRC_level_set(obj, resMode, order, parName, parRange) 
+
+        varargout = FRC_cont_po(obj,oid,resModes,order,parRange);        
+        
+        [SD] = extract_Stability_Diagram(obj,resModes, order, omRange, epsRange, parName, p0, varargin)
+        
+        FRCs = SSM_poSweeps(obj,oid,resonant_modes,order,mFreqs,epSamp,omRange,varargin)
+        
+        FRCs = SSM_lvlSweeps(obj, omRange, epsSamp, ORDER)
+        
         % SSM-ep toolbox
         varargout = SSM_isol2ep(obj,oid,modes,order,mFreq,parName,parRange,outdof,varargin);
         varargout = SSM_ep2ep(obj,oid,run,lab,parName,parRange,outdof,varargin);
@@ -32,7 +44,6 @@ classdef SSM < Manifold
         SSM_po2TR(obj,oid,run,lab,parRange,outdof,varargin);
         SSM_po2SN(obj,oid,run,lab,parRange,outdof,varargin);
         SSM_po2PD(obj,oid,run,lab,parRange,outdof,varargin);
-        SSM_po2Tinf(obj,oid,run,lab,parRange,outdof,varargin);
         % SSM-tor toolbox
         SSM_TR2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);
         SSM_tor2tor(obj,oid,run,lab,parName,parRange,outdof,varargin);

@@ -31,6 +31,7 @@ if strcmp(tb, 'ep')
     Zout_frc  = [];
     Znorm_frc = [];
     Aout_frc  = [];
+    ZoutNorm_frc = [];
 else
     flag = strcmp(tb,'po') || strcmp(tb,'tor');
     assert(flag, 'toolbox should be ep/po/tor');
@@ -38,11 +39,7 @@ else
     nlab = numel(FRC.lab);
     zTr  = cell(nlab,1);
     nSeg = FRC.nSeg;
-    if isnumeric(outdof)
-        noutdof = numel(outdof);
-    elseif isa(outdof, 'function_handle') % function handle for observables
-        noutdof = numel(outdof(zeros(size(W_0{1}.coeffs ,1),1)));
-    end
+    noutdof = numel(outdof);
 end
 
 % Loop around a resonant mode
@@ -60,11 +57,11 @@ for j = 1:numel(om)
     obj.System.Omega = om(j);
     if FRCdata.isomega
         if obj.Options.contribNonAuto
-            [W_1, R_1] = obj.compute_perturbed_whisker(FRCdata.order);
+            [W_1, R_1] = obj.compute_perturbed_whisker(0,[],[]);
 
-            R_10 = R_1{1}.coeffs;
+            R_10 = R_1(kNonauto).R.coeffs;
             assert(~isempty(R_10), 'Near resonance does not occur, you may tune tol');
-            f = R_10((kNonauto-1)*2*m+2*iNonauto-1);
+            f = R_10(2*iNonauto-1);
 
             assert(norm(f-rNonauto)<1e-3*norm(f), 'inner resonance assumption does not hold');
 
@@ -74,18 +71,20 @@ for j = 1:numel(om)
         end
     end
     % Forced response in Physical Coordinates
+
     if obj.System.Options.BaseExcitation
         epsf(j) = epsf(j)*(om(j))^2;
     end    
     %% ep toolbox
     if isep
         state = FRC.z(j,:);
-        [Aout, Zout, z_norm, Zic] = compute_full_response_2mD_ReIm(W_0, W_1, state, epsf(j), nt, mFreqs, outdof);
+        [Aout, Zout, z_norm, Zic, ZoutNorm] = compute_full_response_2mD_ReIm(W_0, W_1, state, epsf(j), nt, mFreqs, outdof);
 
         % collect output in array
         Aout_frc = [Aout_frc; Aout];
         Zout_frc = [Zout_frc; Zout];
         Znorm_frc = [Znorm_frc; z_norm];
+        ZoutNorm_frc = [ZoutNorm_frc; ZoutNorm];
     else   
     %% po toolbox and tor toolbox
         qTrj = FRC.qTr{j};
@@ -118,6 +117,7 @@ if isep
     FRC.Aout_frc  = Aout_frc;
     FRC.Zout_frc  = Zout_frc;
     FRC.Znorm_frc = Znorm_frc;
+    FRC.ZoutNorm_frc = ZoutNorm_frc;
 else
     FRC.zTr  = zTr;
 end

@@ -13,6 +13,7 @@ classdef ManifoldOptions < matlab.mixin.SetGet
                                    % and only leading-order reduced
                                    % dynamics parametrization is computed.
                                    % (relevant in FRC computation)
+        solver  = 'lsqminnorm'     % 'backslash', 'pinv', 'inv', 'linsolve' 
     end
     
     methods

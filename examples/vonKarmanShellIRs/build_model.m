@@ -66,14 +66,14 @@ V = MyAssembly.unconstrain_vector(V0);
 mod = 1;
 v1 = reshape(V(:,mod),6,[]);
 figure;
-PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5)
+PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5);
 title(['Frequency = ' num2str(omega(mod)/(2*pi)) ' Hz'] )
 set(colorbar,'visible','off')
 
 mod = 2;
 v1 = reshape(V(:,mod),6,[]);
 figure;
-PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5)
+PlotFieldonDeformedMesh(nodes,elements,v1(1:3,:).','factor',5);
 title(['Frequency = ' num2str(omega(mod)/(2*pi)) ' Hz'] )
 set(colorbar,'visible','off')
 

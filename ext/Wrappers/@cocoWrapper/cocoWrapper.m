@@ -72,8 +72,18 @@ classdef cocoWrapper < matlab.mixin.SetGet
         % extract Force Response Curve for given frequency range
         bd = extract_FRC(obj, omega_range, varargin)
         
+        % extract Force Response Curve for given frequency range starting
+        % from an initial periodic orbit
+        bd = extract_FRC_fromIC(obj, omega_range,IC,omegaIC ,varargin)
+
         % extract FRC using forward simulation
         bd = forward_FRC(obj, omega_range, varagin)
+        
+        % extract Stability Diagram from full system
+        SD = extract_Stability_Diagram(obj,omRange,epsRange,parName,p0,varargin)
+        
+        % Coco PO Sweeps
+        bds = coco_poSweeps(obj,oid,epSamp,omRange,varargin)
     end
 end
 

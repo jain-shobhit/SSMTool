@@ -13,7 +13,7 @@ nDOF = 2*nElements;
 subs3 = [[nDOF-1,2*nDOF- 1,2*nDOF- 1,2*nDOF- 1];
          [nDOF-1,nDOF-1,nDOF-1,nDOF-1]];
 vals3 = [gamma;kappa];
-f3 = sptensor(subs3, vals3, [2*nDOF,2*nDOF,2*nDOF,2*nDOF]);
+f3 = sptensor(subs3, vals3, [nDOF,2*nDOF,2*nDOF,2*nDOF]);
 
 
 %% 

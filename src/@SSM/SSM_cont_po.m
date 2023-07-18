@@ -68,12 +68,7 @@ switch type
         prob = ode_po2TR(prob, '', coco_get_id(run, 'po'), lab);
         bif  = true;
         fprintf('\n Run=''%s'': Continue TR periodic orbits from label %d of run %s.\n', ...
-          runid, lab, run); 
-    case 'Tinf'
-        prob = ode_po2po(prob, '', coco_get_id(run, 'po'), lab);
-        Tidx = coco_get_func_data(prob,'po.period','uidx');
-        prob = coco_add_pars(prob,'fixT',Tidx,'T');
-        bif = true;
+          runid, lab, run);        
     otherwise
         error('type should be selected from {isol,HB,BP,PO,SN,HB}');
 end
@@ -140,11 +135,7 @@ if ~bif
     end
 else
     cont_args = {'om', 'eps', 'po.period'};
-    if strcmp(type,'Tinf')
-        isomega = true;
-    else
-        isomega = [];
-    end
+    isomega = [];
 end
 
 % coco run
