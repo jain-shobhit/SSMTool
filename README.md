@@ -20,12 +20,13 @@ The theoretical and computational aspects for analyzing systems with internal re
 
 How SSMs are extended to constrained mechanical systems are discussed in the following article:
 
-[4] **Li, M., Jain, S.  & Haller, G. Model reduction for constrained mechanical systems via spectral submanifolds. To appear on Nonlinear Dyn (2023).
+[4] **Li, M., Jain, S.  & Haller, G. Model reduction for constrained mechanical systems via spectral submanifolds.Nonlinear Dyn 111(10): 8881-8911 (2023).
 https://doi.org/10.48550/arXiv.2208.03119**
 
 The treatment of systems subject to parametric resonance via higher-order approximations of nonautonomous SSMs is described in the following article:
 
-[5] **Thurnher, T., Haller, G.  & Jain, S. Nonautonomous spectral submanifolds for model reduction of nonlinear mechanical systems under parametric resonances. Preprint (2023)**
+[5] **Thurnher, T., Haller, G.  & Jain, S. Nonautonomous spectral submanifolds for model reduction of nonlinear mechanical systems under parametric resonances. Preprint (2023). Available on arXiv: 
+https://doi.org/10.48550/arXiv.2307.10240**
 
 In this version, we demonstrate the computational methodology over the following small academic examples as well high-dimensional finite element problems using the FE package *YetAnotherFECode*
 
@@ -43,6 +44,7 @@ Second-order examples:
 - von Karman shell-based shallow curved panel in 3D: geometrically nonlinear finite element model with and without 1:2 internal resonance. [2]
 - Prismatic beam: nonlinear beam PDE discretized using Galerkin method onto a given number of modes, comparison with the method of multiple scales, demonstration of 1:3 internal internal resonance
 - AxialMovingBeam: an axially moving beam with gyroscopic and nonlinear damping forces [2]
+- PipeConveyingFluid: an **fluid-structure interaction** system with flow-induced gyroscopic and follower forces, demonstration of **asymmetric** damping and stiffness matrices and **global bifurcation**. More details can be found in https://doi.org/10.1016/j.ymssp.2022.109993
 - TimoshenkoBeam: a cantilever Timoshenko beam carrying a lumped mass. This example demonstrates the effectiveness of SSM reduction for systems undergoing large deformations. [2]
 - NACA airfoil based aircraft wing model: shell-based nonlinear finite element model containing more than 100,000 degrees of freedom. [1]
 

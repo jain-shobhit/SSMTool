@@ -22,7 +22,11 @@ function BB = extract_backbone(obj, modes, omegaRange, order, varargin)
 % curve if varargin is empty. Otherwise, it is specified via varargin
 
 f1 = figure('Name','Norm');
-f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+if isnumeric(obj.FRCOptions.outdof)
+    f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+else
+    f2 = figure('Name','Amplitude at DOFs');
+end
 figs = [f1, f2];
 colors = get(0,'defaultaxescolororder');
 

@@ -9,13 +9,18 @@ nt = size(z,2);
 Znorm = norm(z,'fro')/sqrt(nt-1);
 
 if ~isempty(outdof)
-    Zout = z(outdof,:);    
-    noutdof = numel(outdof);
+    if isnumeric(outdof)
+        Zout = z(outdof,:);    
+        noutdof = numel(outdof);
+    else
+        Zout = outdof(z);
+        noutdof = size(Zout,1);
+    end
     Aout = zeros(1, noutdof);
     for k=1:numel(outdof)
         Aout(k) = norm(Zout(k,:),'inf');
     end
-    ZoutNorm = norm(z(outdof,:),'fro')/sqrt(nt-1);
+    ZoutNorm = norm(Zout,'fro')/sqrt(nt-1); 
     varargout{1} = ZoutNorm;
 else
     Zout = [];

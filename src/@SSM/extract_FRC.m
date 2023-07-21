@@ -32,7 +32,11 @@ function FRC = extract_FRC(obj, parName, parRange, ORDER)
 % See also: FRC_LEVEL_SET, FRC_CONT_EP, FRC_CONT_PO 
 
 f1 = figure('Name','Norm');
-f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+if isnumeric(obj.FRCOptions.outdof)
+    f2 = figure('Name',['Amplitude at DOFs ' num2str(obj.FRCOptions.outdof(:)')]);
+else
+    f2 = figure('Name','Amplitude at DOFs');
+end
 figs = [f1, f2];
 colors = get(0,'defaultaxescolororder');
 totalComputationTime = zeros(size(ORDER));

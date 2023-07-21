@@ -12,7 +12,11 @@ p(2:2:end,:)   = conj(z);
 z = reduced_to_full_traj(phi,p,W_0,W_1,epsilon,1);
 %
 % Timeseries at outdof
-Zout = z(outdof,:);
+if isnumeric(outdof)
+    Zout = z(outdof,:); noutdof = numel(outdof);
+else
+    Zout = outdof(z); noutdof = size(Zout,1); % function handle for observables
+end
 % 
 % $$\|\mathbf{z}\|_{L_2}=\sqrt{\frac{1}{T}\int_0^T\mathbf\|\mathbf{z}(t)\|^2dt}\approx 
 % \frac{\|\mathbf{Z}\|_{F}}{\sqrt{n_t-1}}$$
