@@ -3,7 +3,8 @@ classdef cocoOptions < matlab.mixin.SetGet
     
     properties
         dir_name          % output directory
-        
+
+        atlasdim = 1      % atlas algorithm dimension: 1->use default one, >1->atlas kd
         % settings for continuation
         NPR = 10          % frequency of screen outputs
         NSV = 10          % frequency of storing solutions to disk
@@ -26,6 +27,15 @@ classdef cocoOptions < matlab.mixin.SetGet
         NTST = 10         % number of mesh intervals
         NCOL = 4          % number of collocation points
         MXCL = true       % enable/disable termination when discretization error exceeds tolerance
+
+        % settings for kd continuation
+        R = 0.1           % initial step size
+        R_max = 1         % max step size
+        R_min = 0.01      % min step size
+        R_fac_max = 2     % max step size adaptation factor
+        R_fac_min = 0.5   % min step size adaptation factor
+        ga = 0.95         % adaptation security factor
+        almax = 10        % max angle between consecutive tangents
     end
     
     methods

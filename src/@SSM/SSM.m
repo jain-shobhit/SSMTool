@@ -5,6 +5,7 @@ classdef SSM < Manifold
     properties
        contOptions = cocoOptions();
        FRCOptions = FRCOptions();
+       FRSOptions = FRSOptions();
        
        R_1 = []; % coefficients nonaut reduced dynamics, used in 'continuation po'
        W_1 = []; % nonautonomoues ssm coefficients, used in 'continuation po'
@@ -52,6 +53,11 @@ classdef SSM < Manifold
         % parallel computation
         activate_parallel(obj,varargin);
         deactivate_parallel(obj);
+        % extract frequency response surface
+        extract_FRS(obj,oid,modes,order,mFreq,parRange,outdof,optdof,scale_state,scale_obs,varargin);
+        % extract ridges and trenches along a frequency response surface
+        % without computing it
+        varargout = extract_ridges_trenches(obj,oid,resonant_modes,order,mFreqs,parRange,outdof,optdof,varargin);        
     end
     
     methods (Access = protected)

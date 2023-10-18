@@ -43,6 +43,13 @@ classdef FRCOptions < matlab.mixin.SetGet
         torRotDiret = 'pos'        % 'pos', 'neg' (rotation direction of tori)
         torNumSegs  = 10           % number of Fourier modes in the approximation of tori
         torPurtb    = 1e-4         % perturbation to Neimark-Sacker periodic orbits to yield initial tori
+
+        DBCobjnorm = 'l2'          % norm used to characterize amplitude in damped backbone curve (DBC) computation
+        DBCobjweight = []          % weight matrix of L2 norm in objective (identity by default)
+        DBCstepFactor = [10 10];   % step control in last two continuation runs
+                                   % of damped backbone curve
+        PtMXBCrun = []             % control the continuation steps in the 
+                                   % last run of damped backbone curve 
     end
     
     methods      

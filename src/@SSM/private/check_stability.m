@@ -26,7 +26,11 @@ for j = 1:nRho
 % 
 % $$J(\rho)=\left[\begin{array}{cc}\partial_{\rho}a(\rho) & -\rho\left[b(\rho)-m\Omega\right]\\\partial_{\rho}b(\rho)+\frac{\left[b(\rho)-m\Omega\right]}{\rho} 
 % & \frac{a(\rho)}{\rho}\end{array}\right]$$
-    J = frc_Jacobian(rho(j),psi(j),gamma,lambda,epsilon,R1);
+    if numel(epsilon)>1
+        J = frc_Jacobian(rho(j),psi(j),gamma,lambda,epsilon(j),R1);
+    else
+        J = frc_Jacobian(rho(j),psi(j),gamma,lambda,epsilon,R1);
+    end
     trJ = trace(J);
     detJ = det(J);
 %% 

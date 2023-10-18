@@ -1,10 +1,10 @@
-# SSMTool 2.4: Computation of invariant manifolds in high-dimensional mechanics problems
+# SSMTool 2.5: Computation of invariant manifolds in high-dimensional mechanics problems
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4614201.svg)](https://doi.org/10.5281/zenodo.4614201)
 
-What's new in SSMTool 2.4
-- Computation of higher-order approximations to non-autonomous invariant manifolds,
-- Applications to computation of stability diagrams and forced response curves in nonlinear mechanical systems under parametric resonance,
-- Improvements in computation using the multi-index notation instead of the tensor notation. 
+What's new in SSMTool 2.5
+- Computation of forced response surface (FRS) via SSM-based model reduction,
+- Extraction of ridges and trenches of FRS without computing the surface,
+- Explicit adjoints and gradients for the optimization of periodic orbits via SSM-based ROMs. 
 
 This package computes invariant manifolds in high-dimensional dynamical systems using the *Parametrization Method* with special attention to the computation of Spectral Submanifolds (SSM) and forced response curves in finite element models.
 
@@ -27,6 +27,10 @@ The treatment of systems subject to parametric resonance via higher-order approx
 
 [5] **Thurnher, T., Haller, G.  & Jain, S. Nonautonomous spectral submanifolds for model reduction of nonlinear mechanical systems under parametric resonances. Preprint (2023). Available on arXiv: 
 https://doi.org/10.48550/arXiv.2307.10240**
+
+The use of SSM-based ROMs to extract forced response surfaces (FRSs) and their ridges and trenches via parameter continuation is discussed in the following article:
+
+[6] **Li, M., Jain, S.  & Haller, G. Fast computation and characterization of forced response surface via spectral submanifolds and parameter continuation. Prprint (2023).**
 
 In this version, we demonstrate the computational methodology over the following small academic examples as well high-dimensional finite element problems using the FE package *YetAnotherFECode*
 
@@ -61,7 +65,12 @@ Computation of stability diagrams and forced response curves in mechanical syste
  - **Parametric amplification** in coupled-oscillators due to nonlinear damping and time-varying stiffness and external periodic forcing with a phase lag relative to stiffness.
  - Prismatic beam: nonlinear beam PDE discretized using Galerkin method onto a given number of modes, demonstration of axial stretching leading to parametric excitation of transverse degrees of freedom. [5]
  - Bernoulli beam attached to a spring time-varying linear stiffness along with a nonlinear damper and spring: Stability diagrams as well as forced response curves (exhibiting isolas) are constructed over two-dimensional SSMs. [5]
-    
+
+Forced response surface and its ridges and trenches [6]
+ - Bernoulli beam with cubic nonlinear support: analytic prediction of FRS, which automatically uncovers isolas of forced response curves
+ - von Karman plate with 1:1 internal resonance: extraction of FRS via two-dimensional continuation; extraction of ridges and trenches via successive parameter continuation
+ - von Karman shell with 1:2 internal resonance: extraction of FRS and its ridges and trenches.
+
 This package uses the following external open-source packages:
 
 1. Continuation core (coco) https://sourceforge.net/projects/cocotools/

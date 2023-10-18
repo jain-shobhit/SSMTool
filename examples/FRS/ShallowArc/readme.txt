@@ -1,0 +1,1 @@
+Please run ridge_trench_l2norm first because the other livescript files will use the results generated in this run.

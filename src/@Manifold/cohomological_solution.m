@@ -250,7 +250,10 @@ switch obj.Options.notation
             end
         end       
         
-        if obj.System.order == 1 || obj.System.order == 2 && strcmp(DStype,'complex')
+        firstFlag1 = obj.System.order ==1;
+        firstFlag2 = strcmp(obj.Options.COMPtype,'first');
+        firstFlag3 = strcmp(DStype,'complex');
+        if firstFlag1 || firstFlag2 || firstFlag3
             
             if obj.System.order == 2
                 fprintf('\n Second order SSM computation only supported for real systems, using first order algorithm \n')

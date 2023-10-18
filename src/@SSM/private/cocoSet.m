@@ -50,6 +50,34 @@ end
 if opts.MXCL~=default.MXCL
     prob = coco_set(prob, 'coll', 'MXCL', opts.MXCL);
 end
-
-
+% settings for kd continuation
+if opts.atlasdim>1
+    if opts.MaxRes~=default.MaxRes
+        prob = coco_set(prob, 'cont', 'atlas', 'kd', 'MaxRes', opts.MaxRes);
+    end
+    if opts.PtMX~=default.PtMX
+        prob = coco_set(prob, 'cont', 'atlas', 'kd', 'PtMX', opts.PtMX);
+    end
+    if opts.R~=default.R
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'R', opts.R);
+    end
+    if opts.R_max~=default.R_max
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'R_max', opts.R_max);
+    end
+    if opts.R_min~=default.R_min
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'R_min', opts.R_min);
+    end
+    if opts.R_fac_max~=default.R_fac_max
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'R_fac_max', opts.R_fac_max);
+    end
+    if opts.R_fac_min~=default.R_fac_min
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'R_fac_min', opts.R_fac_min);
+    end
+    if opts.ga~=default.ga
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'ga', opts.ga);
+    end
+    if opts.almax~=default.almax
+        prob = coco_set(prob, 'cont', 'atlas', 'kd',  'almax', opts.almax);
+    end
+end
 end

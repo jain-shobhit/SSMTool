@@ -1,4 +1,4 @@
-function [W1, R1] = compute_perturbed_whisker(obj, order,W0,R0,varargin)
+function [W1, R1, varargout] = compute_perturbed_whisker(obj, order,W0,R0,varargin)
 % COMPUTE_PERTURBED_WHISKER This function computes the non-autonomous SSM   
 %
 % up to order 'order'.
@@ -147,7 +147,7 @@ R1(1).Omega = Omega;
 
 [ev_idx, harm_idx,~] = resonant_terms(obj,[],kappas(:,idx_0),Omega,'zero'); % contains harmonic idx.
 r_ext    = length(ev_idx);
-if obj.System.order == 1
+if obj.System.order == 1 || obj.FRSOptions.calFRS
 
 %% Set reduced dynamics
 % These sets now determine the bases of the near left kernel of the coefficient
@@ -166,6 +166,7 @@ else
     Q_0 = sparse(l,nKappa);
     RHS = - F_0(:,idx_0);
 end
+varargout{1} = -RHS; % to be used in optimization
 %% Solve for the order zeroth order SSM-coefficients W1, R1
 
 run_idx = 1;
