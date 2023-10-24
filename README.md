@@ -20,8 +20,8 @@ The theoretical and computational aspects for analyzing systems with internal re
 
 How SSMs are extended to constrained mechanical systems are discussed in the following article:
 
-[4] **Li, M., Jain, S.  & Haller, G. Model reduction for constrained mechanical systems via spectral submanifolds.Nonlinear Dyn 111(10): 8881-8911 (2023).
-https://doi.org/10.48550/arXiv.2208.03119**
+[4] **Li, M., Jain, S.  & Haller, G. Model reduction for constrained mechanical systems via spectral submanifolds. Nonlinear Dyn 111(10): 8881-8911 (2023).
+https://doi.org/10.1007/s11071-023-08300-5**
 
 The treatment of systems subject to parametric resonance via higher-order approximations of nonautonomous SSMs is described in the following article:
 
@@ -30,7 +30,8 @@ https://doi.org/10.48550/arXiv.2307.10240**
 
 The use of SSM-based ROMs to extract forced response surfaces (FRSs) and their ridges and trenches via parameter continuation is discussed in the following article:
 
-[6] **Li, M., Jain, S.  & Haller, G. Fast computation and characterization of forced response surface via spectral submanifolds and parameter continuation. Prprint (2023).**
+[6] **Li, M., Jain, S.  & Haller, G. Fast computation and characterization of forced response surface via spectral submanifolds and parameter continuation. Preprint (2023). Available on arXiv: 
+https://doi.org/10.48550/arXiv.2310.14850**
 
 In this version, we demonstrate the computational methodology over the following small academic examples as well high-dimensional finite element problems using the FE package *YetAnotherFECode*
 
